@@ -1,0 +1,642 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model administrateur {
+  etat   Boolean? @db.Bit(1)
+  nom    String?  @db.VarChar(255)
+  prenom String?  @db.VarChar(255)
+  id     Int   @id
+}
+
+model campagne {
+  id              Int    @id @default(autoincrement())
+  adresse         String?   @db.VarChar(255)
+  created_at      DateTime  @db.DateTime(0)
+  date_debut      DateTime? @db.Date
+  date_expiration DateTime? @db.Date
+  description     String?   @db.VarChar(255)
+  etat            Boolean?  @db.Bit(1)
+  exigences       String?   @db.VarChar(255)
+  experience      Int?
+  nbr_poste       Int?
+  niveau_etude    String?   @db.VarChar(255)
+  titre           String?   @db.VarChar(255)
+  updated_at      DateTime? @db.DateTime(0)
+  entreprise_id   Int
+
+  @@index([entreprise_id], map: "FK9ogs1xvhg9824rnc585ax39d7")
+}
+
+model campagne_competence {
+  competence_id Int
+  campagne_id   Int
+
+  @@id([campagne_id, competence_id])
+  @@index([competence_id], map: "FK55vo9xstlrmpichrudv7jko1w")
+}
+
+model campagne_psycho {
+  psycho_id   Int
+  campagne_id Int
+
+  @@id([campagne_id, psycho_id])
+  @@index([psycho_id], map: "FKlmlo23t5vc0m2ukg9tfrfsxcl")
+}
+
+model campagne_technique {
+  technique_id Int
+  campagne_id  Int
+
+  @@id([campagne_id, technique_id])
+  @@index([technique_id], map: "FK9nx4qhh9od5o032pdutt32rdh")
+}
+
+model candidat {
+  adresse        String?   @db.VarChar(255)
+  date_naissance DateTime? @db.Date
+  etat           Boolean?  @db.Bit(1)
+  interet        String?   @db.VarChar(255)
+  nom            String?   @db.VarChar(255)
+  pays           String?   @db.VarChar(255)
+  prenom         String?   @db.VarChar(255)
+  sexe           String?   @db.VarChar(255)
+  telephone      String?   @db.VarChar(255)
+  id             Int    @id
+}
+
+model candidat_campagne {
+  id               Int   @id @default(autoincrement())
+  date_postulation DateTime @db.DateTime(0)
+  etat             String?  @db.VarChar(255)
+  campagne_id      Int?
+  candidat_id      Int?
+
+  @@index([candidat_id], map: "FK682kx0ws0j9t1kuy9njfqq2ho")
+  @@index([campagne_id], map: "FKakrna4e57cg791g7p8wairsbj")
+}
+
+model candidat_off {
+  id               Int   @id @default(autoincrement())
+  date_postulation DateTime @db.DateTime(0)
+  etat             String?  @db.VarChar(255)
+  candidat_id      Int?
+  offre_id         Int?
+
+  @@index([offre_id], map: "FKibyuuauegu2li2afl1vuorc3l")
+  @@index([candidat_id], map: "FKk7csljn42drc8l8wybv9ata5p")
+}
+
+model candidat_offre {
+  candidat_id      Int
+  offre_id         Int
+  date_postulation DateTime @db.DateTime(0)
+  etat             String?  @db.VarChar(255)
+
+  @@id([candidat_id, offre_id])
+  @@index([offre_id], map: "FKif94vk5riidfx2cuhy47lek4")
+}
+
+model candidat_psycho {
+  id                  Int    @id @default(autoincrement())
+  couleur_primaire    String?   @db.VarChar(255)
+  couleur_secondaire  String?   @db.VarChar(255)
+  date_envoie         DateTime? @db.DateTime(0)
+  date_passage        DateTime? @db.DateTime(0)
+  deadline            DateTime? @db.DateTime(0)
+  campagne_id         Int?
+  candidat_id         Int
+  entreprise_envoi_id Int?
+  offre_id            Int?
+  quiz_psycho_id      Int
+
+  @@index([quiz_psycho_id], map: "FK2bnwgdrgg9uqm2m916gwl8aev")
+  @@index([campagne_id], map: "FKccf9us44tb0bpjt0gtrfqx6mt")
+  @@index([entreprise_envoi_id], map: "FKeupg3x2bq6t2nrq2kos9kkhp6")
+  @@index([offre_id], map: "FKh64jpiif99sv35sked9dqwu1i")
+  @@index([candidat_id], map: "FKsqxtpp7cv9c534f2agihw8p6")
+}
+
+model candidat_technique {
+  id                         Int    @id @default(autoincrement())
+  date_envoie                DateTime? @db.DateTime(0)
+  date_passage               DateTime? @db.DateTime(0)
+  deadline                   DateTime? @db.DateTime(0)
+  duree_passage              String?   @db.VarChar(255)
+  etat_passage               String?   @db.VarChar(255)
+  nbre_correcte_reponse      String?   @db.VarChar(255)
+  nbre_fausse_reponse        String?   @db.VarChar(255)
+  nbre_non_question_repondue String?   @db.VarChar(255)
+  nbre_question_repondue     String?   @db.VarChar(255)
+  score                      String?   @db.VarChar(255)
+  campagne_id                Int?
+  candidat_id                Int
+  entreprise_envoi_id        Int?
+  offre_id                   Int?
+  quiz_tech_id               Int
+
+  @@index([campagne_id], map: "FK57x2l4motxh2qok0w3u9smj01")
+  @@index([quiz_tech_id], map: "FKobldy9gaumfi9eb31ijfrk7ls")
+  @@index([candidat_id], map: "FKpa61yk2o5vc6fj86vvglhifgb")
+  @@index([offre_id], map: "FKsjv78jxbru824qqw7kijaraxe")
+  @@index([entreprise_envoi_id], map: "FKt55xtw4ubb2cjtvwk0fkg18y0")
+}
+
+model categorie {
+  id              Int    @id @default(autoincrement())
+  created_at      DateTime  @db.DateTime(0)
+  description     String    @db.VarChar(255)
+  etat            Boolean?  @db.Bit(1)
+  libelle         String?   @db.VarChar(255)
+  updated_at      DateTime? @db.DateTime(0)
+  sous_domaine_id Int
+
+  @@index([sous_domaine_id], map: "FK86x2csy2wfe1tgc6o4lm8t36a")
+}
+
+model centre_interet {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model certifications {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String?   @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model choix {
+  id          Int  @id @default(autoincrement())
+  contenu     String? @db.VarChar(255)
+  couleur     String? @db.VarChar(255)
+  question_id Int
+
+  @@index([question_id], map: "FK8bj14ywht4re5514tbc1std02")
+}
+
+model competences {
+  id           Int    @id @default(autoincrement())
+  created_at   DateTime  @db.DateTime(0)
+  description  String?   @db.VarChar(255)
+  etat         Boolean?  @db.Bit(1)
+  libelle      String?   @db.VarChar(255)
+  updated_at   DateTime? @db.DateTime(0)
+  categorie_id Int
+
+  @@index([categorie_id], map: "FK83b9px4v88915b75nionefk84")
+}
+
+model cv_centre_interets {
+  cv_id             Int
+  centre_interet_id Int
+
+  @@id([cv_id, centre_interet_id])
+  @@index([centre_interet_id], map: "FK49h2vgjt6lpgipihcgk2wrxq")
+}
+
+model cv_certification {
+  id               Int  @id @default(autoincrement())
+  annee_emission   Int?
+  autorite         String? @db.VarChar(255)
+  code             String? @db.VarChar(255)
+  mois_emission    Int?
+  certification_id Int
+  cv_id            Int
+
+  @@index([cv_id], map: "FK5ox33c14r0uf7jy7919mbbick")
+  @@index([certification_id], map: "FKank9r9xo5pkwfom36sfphicb1")
+}
+
+model cv_competence {
+  competence_id Int
+  cv_id         Int
+  niveau        String? @db.VarChar(255)
+
+  @@id([competence_id, cv_id])
+  @@index([cv_id], map: "FKibrwgdfwlwo1vsb70wstv1k8b")
+}
+
+model cv_formation {
+  id           Int  @id @default(autoincrement())
+  annee_debut  Int?
+  annee_fin    Int?
+  ecole        String? @db.VarChar(255)
+  lieu         String? @db.VarChar(255)
+  cv_id        Int
+  formation_id Int
+
+  @@index([cv_id], map: "FK2r3d2hgujc5jvinw2ag3k2ksy")
+  @@index([formation_id], map: "FKsfnomvdke7p9vpu8utgy6apkh")
+}
+
+model cv_langue {
+  cv_id     Int
+  langue_id Int
+  niveau    String? @db.VarChar(255)
+
+  @@id([cv_id, langue_id])
+  @@index([langue_id], map: "FKng30bngcomvlca06ip7j15432")
+}
+
+model cv_qualites {
+  cv_id      Int
+  qualite_id Int
+
+  @@id([cv_id, qualite_id])
+  @@index([qualite_id], map: "FKegwkvj2wy89j2uy0cl78npeh1")
+}
+
+model cvs {
+  id           Int    @id @default(autoincrement())
+  bio          String?   @db.VarChar(255)
+  created_at   DateTime  @db.DateTime(0)
+  etat         Boolean?  @db.Bit(1)
+  github       String?   @db.VarChar(255)
+  linkedin     String?   @db.VarChar(255)
+  poste_actuel String?   @db.VarChar(255)
+  updated_at   DateTime? @db.DateTime(0)
+  candidat_id  Int    @unique(map: "UK_34kd0q3p938vvnb0xhwjuonx6")
+}
+
+model domaine {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model entreprise {
+  activite       String?  @db.VarChar(255)
+  adresse        String?  @db.VarChar(255)
+  etat           Boolean? @db.Bit(1)
+  mobile         String?  @db.VarChar(255)
+  pays           String?  @db.VarChar(255)
+  raison_sociale String?  @db.VarChar(255)
+  responsable    String?  @db.VarChar(255)
+  taille         String?  @db.VarChar(255)
+  telephone      String?  @db.VarChar(255)
+  id             Int   @id
+}
+
+model experiences {
+  id          Int   @id @default(autoincrement())
+  annee_debut Int?
+  annee_fin   Int?
+  created_at  DateTime @db.DateTime(0)
+  description String?  @db.VarChar(255)
+  duree       String?  @db.VarChar(255)
+  entreprise  String?  @db.VarChar(255)
+  lieu        String?  @db.VarChar(255)
+  mois_debut  Int?
+  mois_fin    Int?
+  titre       String?  @db.VarChar(255)
+  cv_id       Int
+
+  @@index([cv_id], map: "FKnsxcr843w11thr6g2o5n65hy")
+}
+
+model formations {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String?   @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model langue {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model moderateur {
+  etat   Boolean @db.Bit(1)
+  nom    String? @db.VarChar(255)
+  prenom String? @db.VarChar(255)
+  id     Int  @id
+}
+
+model notification_quiz {
+  id                    Int    @id @default(autoincrement())
+  created_at            DateTime  @db.DateTime(0)
+  description           String?   @db.VarChar(255)
+  destinataire_id       Int?
+  etat                  Int?
+  objet                 String?   @db.VarChar(255)
+  updated_at            DateTime? @db.DateTime(0)
+  candidat_campagne_id  Int?
+  candidat_off_id       Int?
+  candidat_technique_id Int?
+
+  @@index([candidat_campagne_id], map: "FKff2vwd8qa9mgfxl3cdfdkhym")
+  @@index([candidat_technique_id], map: "FKig4rq450jdfjwtp0dgglldo9c")
+  @@index([candidat_off_id], map: "FKnn5e4qhm4gr6c7i6rgt0auj5m")
+}
+
+model offre_competence {
+  offre_id      Int
+  competence_id Int
+
+  @@id([competence_id, offre_id])
+  @@index([offre_id], map: "FKsqv1c5exiulvucdo7q2yub3gj")
+}
+
+model offre_emploi {
+  id              Int    @id @default(autoincrement())
+  adresse         String?   @db.VarChar(255)
+  created_at      DateTime  @db.DateTime(0)
+  date_expiration DateTime? @db.Date
+  description     String?   @db.VarChar(255)
+  etat            Boolean?  @db.Bit(1)
+  exigences       String?   @db.VarChar(255)
+  experience      Int?
+  nbr_poste       Int?
+  niveau_etude    String?   @db.VarChar(255)
+  salaire         String?   @db.VarChar(255)
+  titre           String?   @db.VarChar(255)
+  type_emploi     String?   @db.VarChar(255)
+  updated_at      DateTime? @db.DateTime(0)
+  entreprise_id   Int
+
+  @@index([entreprise_id], map: "FKoi31qexj76m7bsauvuqwps7i8")
+}
+
+model pack {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  prix        String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model pack_service {
+  pack_id    Int
+  service_id Int
+
+  @@index([pack_id], map: "FKfj7ygvurag77i2ps4yod9o4ot")
+  @@index([service_id], map: "FKjn7ksnptba226r0kci54fojjr")
+  @@ignore
+}
+
+model profile_pictures {
+  id           Int    @id @default(autoincrement())
+  created_at   DateTime  @db.DateTime(0)
+  data         Bytes?
+  picture_name String?   @db.VarChar(255)
+  picture_type String?   @db.VarChar(255)
+  updated_at   DateTime? @db.DateTime(0)
+  user_id      Int    @unique(map: "UK_37t6vihvt17a66blglf4nh6pb")
+}
+
+model projets {
+  id          Int   @id @default(autoincrement())
+  annee_debut Int?
+  annee_fin   Int?
+  created_at  DateTime @db.DateTime(0)
+  description String?  @db.VarChar(255)
+  entreprise  String?  @db.VarChar(255)
+  lieu        String?  @db.VarChar(255)
+  mois_debut  Int?
+  mois_fin    Int?
+  titre       String?  @db.VarChar(255)
+  cv_id       Int
+
+  @@index([cv_id], map: "FKbhjwmq56df76hswv8xkdgrqq7")
+}
+
+model qualite {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+}
+
+model question_psychometrique {
+  id                     Int    @id @default(autoincrement())
+  contenu                String?   @db.VarChar(255)
+  created_at             DateTime  @db.DateTime(0)
+  updated_at             DateTime? @db.DateTime(0)
+  quiz_psychometrique_id Int
+
+  @@index([quiz_psychometrique_id], map: "FK4j99l4m7m8x8o7lc53d38eoks")
+}
+
+model question_technique {
+  id                Int    @id @default(autoincrement())
+  contenu           String?   @db.VarChar(255)
+  created_at        DateTime  @db.DateTime(0)
+  updated_at        DateTime? @db.DateTime(0)
+  quiz_technique_id Int
+
+  @@index([quiz_technique_id], map: "FKi4qynt41k4beiu64sxkeomqea")
+}
+
+model quiz_psychometrique {
+  id              Int    @id @default(autoincrement())
+  created_at      DateTime  @db.DateTime(0)
+  description     String?   @db.VarChar(255)
+  etat            Boolean?  @db.Bit(1)
+  nombre_question Int?
+  titre           String?   @db.VarChar(255)
+  updated_at      DateTime? @db.DateTime(0)
+}
+
+model quiz_technique {
+  id            Int    @id @default(autoincrement())
+  created_at    DateTime  @db.DateTime(0)
+  cree_par      String?   @db.VarChar(255)
+  description   String?   @db.VarChar(255)
+  duree         Int?
+  etat          Boolean?  @db.Bit(1)
+  nbr_question  Int?
+  niveau        String?   @db.VarChar(255)
+  titre         String?   @db.VarChar(255)
+  updated_at    DateTime? @db.DateTime(0)
+  valide        Boolean?  @db.Bit(1)
+  categorie_id  Int
+  entreprise_id Int?
+
+  @@index([entreprise_id], map: "FKgt5a1iekx5tba1g6ry9x0haff")
+  @@index([categorie_id], map: "FKipbl086dvj00oyfgg8bt2dtsr")
+}
+
+model reclamation {
+  id                Int    @id @default(autoincrement())
+  created_at        DateTime? @db.DateTime(0)
+  description       String?   @db.VarChar(255)
+  etat              Int?
+  objet             String?   @db.VarChar(255)
+  reponse           String?   @db.VarChar(255)
+  updated_at        DateTime? @db.DateTime(0)
+  administrateur_id Int?
+  candidat_id       Int?
+  entreprise_id     Int?
+
+  @@index([candidat_id], map: "FK316sses1nro964m33r1bq4k9h")
+  @@index([administrateur_id], map: "FKgrvk5aolwdpkm4x9iac3a7cdp")
+  @@index([entreprise_id], map: "FKs8slwydyif0hnm0w8ad632j2o")
+}
+
+model reclamation_moderateur {
+  reclamation_id Int
+  moderateur_id  Int
+
+  @@id([reclamation_id, moderateur_id])
+  @@index([moderateur_id], map: "FKeir0ab755v8vquco0p1fbnudk")
+}
+
+model reponse {
+  id                    Int    @id @default(autoincrement())
+  contenu               String?   @db.VarChar(255)
+  correct               Boolean?  @db.Bit(1)
+  created_at            DateTime  @db.DateTime(0)
+  updated_at            DateTime? @db.DateTime(0)
+  question_technique_id Int
+
+  @@index([question_technique_id], map: "FKpxmcltmxxs8dai93tysmv9tlk")
+}
+
+
+
+
+model services {
+  id          Int  @id @default(autoincrement())
+  description String? @db.VarChar(255)
+  nom         String? @db.VarChar(255)
+}
+
+model sous_domaine {
+  id          Int    @id @default(autoincrement())
+  created_at  DateTime  @db.DateTime(0)
+  description String    @db.VarChar(255)
+  etat        Boolean?  @db.Bit(1)
+  libelle     String?   @db.VarChar(255)
+  updated_at  DateTime? @db.DateTime(0)
+  domaine_id  Int
+
+  @@index([domaine_id], map: "FKa70bfuflxl27xytktwg54m6l1")
+}
+
+model temps_question {
+  id                    Int  @id @default(autoincrement())
+  question              String? @db.VarChar(255)
+  reponse               String? @db.VarChar(255)
+  temps                 String? @db.VarChar(255)
+  temps_out             String? @db.VarChar(255)
+  candidat_technique_id Int
+
+  @@index([candidat_technique_id], map: "FKak59w29wlmy33lgg06r3q7lqu")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model user_pack {
+  user_id Int
+  pack_id Int
+
+  @@index([pack_id], map: "FKp24evoocjp3r9spaydnr5pa7")
+  @@index([user_id], map: "FKpwrgbpliukmjdkvwjboujvkvh")
+  @@ignore
+}
+
+model Users {
+  id               Int      @id @default(autoincrement())
+  firstname             String
+    lastname             String
+   image             String
+   location             String
+  email            String   @unique
+  password         String
+  role             String  @default("user")
+  isVerified       Boolean  @default(false)
+  verificationCode String?
+    quizHistory      QuizHistory[]
+  quizData    QuizData[]
+
+}
+model Resume {
+  id                    Int      @id 
+  job                   String?
+  country               String?
+  phone                 String?
+  email                 String?
+  website               String?
+  skype                 String?
+  twitter               String?
+  linkedin              String?
+  facebook              String?
+  profile               String?
+  first_date_start      String?
+  first_date_end        String?
+  first_loc             String?
+  first_company_work    String?
+  first_work            String?
+  second_date_start     String?
+  second_date_end       String?
+  second_company_work   String?
+  second_company_name   String?
+  second_work           String?
+  third_date_start      String?
+  third_date_end        String?
+  third_company_work    String?
+  third_company_name    String?
+  third_work            String?
+  first_date_start_edu  String?
+  first_date_end_edu    String?
+  first_edu             String?
+  first_education       String?
+  second_date_start_edu String?
+  second_date_end_edu   String?
+  second_edu            String?
+  skill_1               String?
+  slider_1              String?
+  skill_2               String?
+  slider_2              String?
+  skill_3               String?
+  slider_3              String?
+  skill_4               String?
+  slider_4              String?
+}
+
+
+
+model QuizData {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  exerciseTitle String
+  correct       Int
+  incorrect     Int
+  createdAt     DateTime @default(now())
+  Users         Users    @relation(fields: [userId], references: [id])
+}
+
+model QuizHistory {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  exerciseTitle String
+  score         Int
+  createdAt     DateTime @default(now())
+  Users         Users    @relation(fields: [userId], references: [id])
+}
