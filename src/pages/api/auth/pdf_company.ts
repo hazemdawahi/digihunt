@@ -1,3 +1,5 @@
+
+
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -39,7 +41,7 @@ handler.post(async (req, res) => {
   // Draw the logo at the top right
   page.drawImage(logoImage, {
     x: width - logoDims.width - 30,
-    y: height - logoDims.height - 30,
+    y: height - logoDims.height - 10,
     width: logoDims.width,
     height: logoDims.height,
   });
@@ -49,7 +51,7 @@ handler.post(async (req, res) => {
   const titleFontSize = 20;
   page.drawText("Test Report", {
     x: 30,
-    y: height - 50,
+    y: height - 30,
     font: titleFont,
     size: titleFontSize,
     color: rgb(0, 0, 0),
@@ -73,7 +75,7 @@ handler.post(async (req, res) => {
   const detailsTitleFontSize = 16;
   page.drawText("Details", {
     x: 30,
-    y: height - 70,
+    y: height - 75,
     font: detailsTitleFont,
     size: detailsTitleFontSize,
     color: rgb(0, 0, 0),
@@ -117,20 +119,35 @@ handler.post(async (req, res) => {
     });
     offsetY += fontSize + 10;
   }
- 
+  const scorePercentage = (req.body.score / req.body.questions.length) * 100;
+
+  // Adjust offsetY value to create space for the score text
+
+  
+  // Draw the score text on the page
+  const scoreFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const scoreFontSize = 18;
+  const scoreColor = scorePercentage >= 50 ? rgb(0, 0.5, 0) : rgb(0.5, 0, 0);
+  const scoreText = `Score: ${scorePercentage.toFixed(1)}%`;
+  page.drawText(scoreText, {
+    x: width / 2 - (scoreText.length * scoreFontSize) / 4, // Center the score text
+    y: height - offsetY - 90,
+    font: scoreFont,
+    size: scoreFontSize,
+    color: scoreColor,
+  });
 // Draw the "Questions & Answers" title
 const questionsTitleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 const questionsTitleFontSize = 16;
 page.drawText("Questions & Answers", {
   x: 30,
-  y: height - offsetY - 100,
+  y: height - offsetY - 120,
   font: questionsTitleFont,
   size: questionsTitleFontSize,
   color: rgb(0, 0, 0),
 });
 
-// Add questions, user answers, and correct answers to the PDF
-offsetY = offsetY + 120;
+offsetY = offsetY + 140;
 let questionNumber = 1;
 for (const question of req.body.questions) {
   const questionText = `Q${questionNumber}: ${question.question}`;
@@ -167,13 +184,36 @@ for (const question of req.body.questions) {
     size: fontSize,
     color: textColor,
   });
+  offsetY += fontSize + 5;
+
+  // Add tab changes and duration per question
+  const tabChangesText = `Tab changes: ${question.tabChanges}`;
+  const durationPerQuestionText = `Duration: ${question.durationPerQuestion}`;
+
+  page.drawText(tabChangesText, {
+    x: 30,
+    y: height - offsetY,
+    font,
+    size: fontSize,
+    color: textColor,
+  });
+  offsetY += fontSize + 5;
+
+  page.drawText(durationPerQuestionText, {
+    x: 30,
+    y: height - offsetY,
+    font,
+    size: fontSize,
+    color: textColor,
+  });
   offsetY += fontSize + 10;
 
   questionNumber++;
 }
 
 // Draw a bar chart for correct and incorrect answers
-const canvas = createCanvas(400, 200);
+const chartPage = pdfDoc.addPage([600, 800]);
+const canvas = createCanvas(350, 150);
 const ctx = canvas.getContext('2d');
 
 const correctAnswersCount = req.body.score;
@@ -201,22 +241,18 @@ const chart = new Chart(ctx as unknown as ChartItem, {
     },
   },
 });
-  
 
 const chartImage = await pdfDoc.embedPng(new Uint8Array(canvas.toBuffer()));
-const chartImageDims = { width: 400, height: 200 };
+const chartImageDims = { width: 350, height: 300 };
 
 // Draw the chart image on the PDF
-page.drawImage(chartImage, {
-    x: page.getWidth() / 2 - chartImageDims.width / 2,
-    y: height - offsetY - chartImageDims.height,
-    width: chartImageDims.width,
-    height: chartImageDims.height,
-  });
-  
-  // Update offsetY for the next element
-  offsetY += chartImageDims.height + 30;
-  
+const chartOffsetY = 20;
+chartPage.drawImage(chartImage, {
+  x: chartPage.getWidth() / 2 - chartImageDims.width / 2,
+  y: chartPage.getHeight() - chartOffsetY - chartImageDims.height,
+  width: chartImageDims.width,
+  height: chartImageDims.height,
+});
   // Serialize the PDF to bytes
   const pdfBytes = await pdfDoc.save();
 

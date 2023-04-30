@@ -12,6 +12,7 @@ import Question from "../components/Question";
 import ExerciseList from "../components/ExerciceList";
 import SideNavbar from "./SideNavbar";
 import QuizResults from './doughuntchart';
+import { getSession, useSession } from 'next-auth/react';
 
 export function getServerSideProps() {
     const exercises = [
@@ -31,20 +32,80 @@ export function getServerSideProps() {
   return lowerLetter.charCodeAt(0) - 'a'.charCodeAt(0);
 }
 
-const callApi = async (questions, score, answers) => {
-  const apiUrl = "http://localhost:3000/api/auth/pdf";
+const callApi = async (questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime,user) => {
+
+  const apiUrl = "http://localhost:3000/api/auth/pdf_company";
+  const percentage = (score / questions.length) * 100;
 
   const data = {
     questions: questions.map((question, index) => {
       const userAnswerLetter = answers[index];
       const correctAnswerLetter = question.correctAnswer;
+      const tabchanges= tabSwitchCount[index];
+      const duration_per_question = formattedTimeSpent[index];
+      
+
       return {
         question: question.question,
         userAnswer: question.answers[letterToIndex(userAnswerLetter)],
         correctAnswer: question.answers[letterToIndex(correctAnswerLetter)],
+        tabChanges: tabchanges,
+        durationPerQuestion: duration_per_question,
       };
     }),
     score: score,
+    percentage: percentage,
+    user_time: formattedTotalDuration,
+    total_duration: remainingTime,
+  };
+  console.log(data);
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    // Handle the response as a Blob
+    const pdfBlob = await response.blob();
+    return pdfBlob;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+const callApi_user = async (questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime,user) => {
+
+  const apiUrl = "http://localhost:3000/api/auth/pdf_user";
+  const percentage = (score / questions.length) * 100;
+
+  const data = {
+    questions: questions.map((question, index) => {
+      const userAnswerLetter = answers[index];
+      const correctAnswerLetter = question.correctAnswer;
+      const tabchanges= tabSwitchCount[index];
+      const duration_per_question = formattedTimeSpent[index];
+      
+
+      return {
+        question: question.question,
+        userAnswer: question.answers[letterToIndex(userAnswerLetter)],
+        correctAnswer: question.answers[letterToIndex(correctAnswerLetter)],
+        tabChanges: tabchanges,
+        durationPerQuestion: duration_per_question,
+      };
+    }),
+    score: score,
+    percentage: percentage,
+    user_time: formattedTotalDuration,
+    total_duration: remainingTime,
   };
   console.log(data);
 
@@ -70,8 +131,11 @@ const callApi = async (questions, score, answers) => {
   }
 };
 
+function QuizResultsPDF({ questions, score,answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime }) {
+  const { data: session } = useSession();
 
-function QuizResultsPDF({ questions, score,answers }) {
+  
+  
   const renderButton = () => {
     return (
       <button
@@ -81,13 +145,16 @@ function QuizResultsPDF({ questions, score,answers }) {
         <span>
           <FaDownload />
         </span>
-        <span>Download PDF</span>
+        <span>Download Company PDF</span>
       </button>
+      
     );
   };
 
   const handleDownload = async () => {
-    const pdfBlob = await callApi(questions, score,answers);
+    const pdfBlob = await callApi(questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime, session.user
+      )
+     
 
     if (pdfBlob) {
       // Download the PDF file
@@ -100,7 +167,46 @@ function QuizResultsPDF({ questions, score,answers }) {
     }
   };
 
-  return renderButton();
+  return renderButton() ;
+}
+
+function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime }) {
+  const { data: session } = useSession();
+
+  
+  
+  const renderButton = () => {
+    return (
+      <button
+        className="flex items-center gap-1 bg-gray-400 p-2 rounded-sm shadow-md text-white"
+        onClick={handleDownload_user}
+      >
+        <span>
+          <FaDownload />
+        </span>
+        <span>Download User PDF</span>
+      </button>
+      
+    );
+  };
+
+  const handleDownload_user = async () => {
+    const pdfBlob = await callApi_user(questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime, session.user
+      )
+     
+
+    if (pdfBlob) {
+      // Download the PDF file
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "quiz-results.pdf";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  return renderButton() ;
 }
 export function getQuestions(exerciseId) {
     const allQuestions  = [
@@ -358,11 +464,16 @@ export function getQuestions(exerciseId) {
       questions: [],
       isExerciseDone: false,
       score: 0,
-      answers:[]
+      answers:[],
+      formattedTimeSpent: [], 
+      tabSwitchCount:[],
+      formattedTotalDuration:null,
+      remainingTime:null
+    
     };
-
+    
     const [state, setState] = useState(initialState);
-    const { isExerciseShown, questions, isExerciseDone, score,answers } = state;
+    const { isExerciseShown, questions, isExerciseDone, score,answers,formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime} = state;
 
     const showExercise = (id) => {
         setState({
@@ -375,15 +486,21 @@ export function getQuestions(exerciseId) {
     const hideExercise = () => {
         setState(initialState);
     };
-     const finishTest =(score,answers ) => {
-     
+     const finishTest =(score,answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime) => {
+     console.log("score",score)
+     console.log("answers",answers)
+      console.log("formattedTimeSpent",formattedTimeSpent)
+      console.log("tabSwitchCount",tabSwitchCount)
+      console.log("formattedTotalDuration",formattedTotalDuration)
+      console.log("remainingTime",remainingTime)
+
         setState({
             ...state,
             isExerciseDone: true,
             score,
-            answers
+            answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime
         });
-        console.log(answers)
+
     };
    
 
@@ -405,7 +522,8 @@ export function getQuestions(exerciseId) {
                   </p>
                   <center>
                   <QuizResults score={score} totalQuestions={questions.length} />
-                  <QuizResultsPDF questions={questions} score={score} answers={answers} />
+                  <QuizResultsPDF questions={questions} score={score} answers={answers} formattedTimeSpent={formattedTimeSpent} tabSwitchCount={tabSwitchCount} formattedTotalDuration={formattedTotalDuration} remainingTime={remainingTime}  />
+                  <QuizResultsPDF_user questions={questions} score={score} answers={answers} formattedTimeSpent={formattedTimeSpent} tabSwitchCount={tabSwitchCount} formattedTotalDuration={formattedTotalDuration} remainingTime={remainingTime}  />
 
 </center>
 

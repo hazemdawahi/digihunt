@@ -26,6 +26,7 @@
     "canvas": "^2.11.2",
     "chart.js": "^4.2.1",
     "chartjs": "^0.3.24",
+    "chartjs-node-canvas": "^4.1.6",
     "formik": "^2.2.9",
     "fs": "^0.0.1-security",
     "next": "13.1.6",
@@ -46,6 +47,7 @@
     "zod": "^3.20.2"
   },
   "devDependencies": {
+    "@types/chart.js": "^2.9.37",
     "@types/node": "^18.11.18",
     "@types/prettier": "^2.7.2",
     "@types/react": "^18.0.26",

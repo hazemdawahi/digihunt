@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import Answers from "./Answers";
 import NavigationButton from "./NavigationButton";
@@ -13,11 +9,15 @@ export default function Question({ questions, hideExercise, finishTest }) {
         answers: [],
         numberOfQuestions: questions.length,
         correctAnswers: [],
+        timeSpent: new Array(questions.length).fill(0),
+        tabSwitchCount: new Array(questions.length).fill(0),
     };
     const [state, setState] = useState(initialState);
-    const { currentQuestion, answers, numberOfQuestions } = state;
+    const { currentQuestion, answers, numberOfQuestions, timeSpent, tabSwitchCount } = state;
     const question = questions[currentQuestion];
-    const [remainingTime, setRemainingTime] = useState(1 * 60);
+    const [remainingTime, setRemainingTime] = useState(5 * 60);
+    const startTime = useRef(Date.now());
+    const isHiddenRef = useRef(false);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -33,14 +33,62 @@ export default function Question({ questions, hideExercise, finishTest }) {
         }
     }, [remainingTime]);
 
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                isHiddenRef.current = true;
+                const updatedTimeSpent = updateQuestionTime();
+                setState({ ...state, timeSpent: updatedTimeSpent });
+                startTime.current = Date.now();
+            } else {
+                if (isHiddenRef.current) {
+                    const updatedTabSwitchCount = [...tabSwitchCount];
+                    updatedTabSwitchCount[currentQuestion]++;
+                    const elapsedTime = Math.floor((Date.now() - startTime.current) / 1000);
+                    const updatedTimeSpent = [...timeSpent];
+                    updatedTimeSpent[currentQuestion] += elapsedTime;
+                    setState({ ...state, tabSwitchCount: updatedTabSwitchCount, timeSpent: updatedTimeSpent });
+                    isHiddenRef.current = false;
+                }
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [currentQuestion, state]);
+
+    useEffect(() => {
+        startTime.current = Date.now();
+    }, [currentQuestion]);
+
+    const formatDuration = (seconds) => {
+        return `${Math.floor(seconds / 60)}min ${seconds % 60}sec`;
+    };
+
+    const updateQuestionTime = () => {
+        const updatedTimeSpent = [...timeSpent];
+        updatedTimeSpent[currentQuestion] += Math.floor((Date.now() - startTime.current) / 1000);
+        startTime.current = Date.now();
+        return updatedTimeSpent;
+    };
 
     const submitAnswer = () => {
         let totalScore = 0;
+        const updatedTimeSpent = updateQuestionTime();
+        const totalDuration = 5 * 60;
+        const formattedTimeSpent = updatedTimeSpent.map((time) => formatDuration(time));
+
         for (let i = 0; i < questions.length; i++) {
             if (answers[i] === questions[i].correctAnswer) totalScore++;
         }
-        finishTest(totalScore,answers);
+
+        const timeItTook = totalDuration - remainingTime;
+        const formattedTimeItTook = formatDuration(timeItTook);
+        const formattedTotalDuration = formatDuration(totalDuration);
+
+        finishTest(totalScore, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, formattedTimeItTook);
     };
+
     const answerQuestion = (answer) => {
         answers[currentQuestion] = answer;
         setState({
@@ -49,7 +97,10 @@ export default function Question({ questions, hideExercise, finishTest }) {
         });
     };
 
-    const moveQuestion = (direction) => {
+    const moveQuestion = (
+
+    direction) => {
+        const updatedTimeSpent = updateQuestionTime();
         switch (direction) {
             case "next": {
                 if (currentQuestion === numberOfQuestions - 1) {
@@ -59,6 +110,7 @@ export default function Question({ questions, hideExercise, finishTest }) {
                 setState({
                     ...state,
                     currentQuestion: currentQuestion + 1,
+                    timeSpent: updatedTimeSpent,
                 });
                 break;
             }
@@ -66,8 +118,12 @@ export default function Question({ questions, hideExercise, finishTest }) {
                 setState({
                     ...state,
                     currentQuestion: currentQuestion - 1,
+                    timeSpent: updatedTimeSpent,
                 });
+                break;
             }
+            default:
+                break;
         }
     };
 
