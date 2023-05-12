@@ -12,9 +12,11 @@ import nc from 'next-connect';
 import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
 import path from 'path';
+import Jimp from "jimp";
+
 import fs from 'fs';
 const prisma = new PrismaClient();
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Chart, ChartItem, LinearScale, CategoryScale,BarElement } from 'chart.js';
 import { createCanvas } from 'canvas';
 Chart.register(LinearScale, CategoryScale, BarElement);
@@ -208,7 +210,10 @@ for (const question of req.body.questions) {
   });
   offsetY += fontSize + 10;
 
-  questionNumber++;
+
+ 
+  // Check if the current page is full
+ 
 }
 
 // Draw a bar chart for correct and incorrect answers
@@ -253,18 +258,105 @@ chartPage.drawImage(chartImage, {
   width: chartImageDims.width,
   height: chartImageDims.height,
 });
+
+
+async function getImageDataFromUrl(url) {
+  try {
+    // Fetch the image from the URL
+    const response = await fetch(url);
+    const imageBuffer = await response.buffer();
+
+    // Read the image using Jimp
+    const image = await Jimp.read(imageBuffer);
+    const { width, height } = image.bitmap;
+
+    // Convert the image to PNG buffer
+    const pngBuffer = await image.getBufferAsync(Jimp.MIME_PNG);
+
+    // Embed the PNG buffer into the PDF document
+    const embeddedImage = await pdfDoc.embedPng(pngBuffer);
+
+    return { image: embeddedImage, width, height };
+  } catch (error) {
+    console.error(`Error fetching or embedding image from URL: ${url}`);
+    throw error;
+  }
+}
+
+
+// ...
+
+
+let imagesOffsetY = chartOffsetY + chartImageDims.height + 40;
+let currentPage = chartPage;
+const screenshotsTitleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+const screenshotsTitleFontSize = 16;
+const screenshotsTitleText = "Screenshots";
+const screenshotsTitleWidth = screenshotsTitleText.length * screenshotsTitleFontSize;
+const screenshotsTitleX = (currentPage.getWidth() - screenshotsTitleWidth) / 2;
+currentPage.drawText(screenshotsTitleText, {
+  x: screenshotsTitleX,
+  y: currentPage.getHeight() - imagesOffsetY,
+  font: screenshotsTitleFont,
+  size: screenshotsTitleFontSize,
+  color: rgb(0, 0, 0),
+  opacity: 0.8,
+  rotate: degrees(0),
+  xSkew: degrees(0),
+  ySkew: degrees(0),
+  lineHeight: 1,
+});
+
+imagesOffsetY += screenshotsTitleFontSize + 20;
+
+// Add the "User camera access denied" text
+const deniedTextFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+const deniedTextFontSize = 12;
+const deniedText = "User camera access denied";
+const deniedTextWidth = deniedText.length * deniedTextFontSize;
+const deniedTextX = (currentPage.getWidth() - deniedTextWidth) / 2;
+currentPage.drawText(deniedText, {
+  x: deniedTextX,
+  y: currentPage.getHeight() - imagesOffsetY,
+  font: deniedTextFont,
+  size: deniedTextFontSize,
+  color: textColor,
+});
+
+imagesOffsetY += deniedTextFontSize + 20;
+
+for (const image of req.body.images) {
+  const imageData = await getImageDataFromUrl(image);
+
+  if (imagesOffsetY + imageData.height > currentPage.getHeight() - 40) {
+    // Create a new page if there is not enough space
+    currentPage = pdfDoc.addPage([600, 800]);
+    imagesOffsetY = 40;
+  }
+
+  const embeddedImage = imageData.image;
+  const { width: imageWidth, height: imageHeight } = imageData;
+
+  currentPage.drawImage(embeddedImage, {
+    x: currentPage.getWidth() / 2 - imageWidth / 2,
+    y: currentPage.getHeight() - imagesOffsetY - imageHeight,
+    width: imageWidth,
+    height: imageHeight,
+  });
+
+  imagesOffsetY += imageHeight + 20;
+}
   // Serialize the PDF to bytes
   const pdfBytes = await pdfDoc.save();
 
   // Set the appropriate response headers and send the PDF
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename=test_report.pdf');
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=test_report.pdf");
   res.send(Buffer.from(pdfBytes.buffer));
-
-}
-catch (error) {
-  console.error('Error generating PDF:', error);
-  res.status(500).json({ message: 'Error generating PDF', error: error.message });
+} catch (error) {
+  console.error("Error generating PDF:", error);
+  res.status(500).json({ message: "Error generating PDF", error: error.message });
 }
 });
+
 export default handler;

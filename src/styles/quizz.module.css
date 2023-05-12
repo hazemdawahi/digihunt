@@ -1,0 +1,9 @@
+.quiz_results_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Adjust this value to change the space between items */
+  }
+  .sized_box {
+    height: 50px; /* Adjust this value to change the height of the box */
+  }

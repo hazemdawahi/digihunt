@@ -1,6 +1,7 @@
 import { Doughnut } from 'react-chartjs-2';
 import { useState, useEffect } from 'react';
 import { Chart, ArcElement } from 'chart.js';
+import styles from '../styles/quizz.module.css';
 
 // Register the 'arc' element
 Chart.register(ArcElement);
@@ -45,6 +46,8 @@ const QuizResults: React.FC<QuizResultsProps> = ({ score, totalQuestions }) => {
   return (
     <div>
       <h1>Quiz Results</h1>
+      <div className={styles.sized_box}></div>
+
       <div style={{ width: '300px', height: '300px' }}>
         <Doughnut data={chartData} options={chartOptions} />
       </div>
