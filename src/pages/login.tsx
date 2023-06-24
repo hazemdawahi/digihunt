@@ -48,9 +48,9 @@ export default function Login(){
     }
 
     return (
-        <Layout>
+        <Layout children={undefined}>
 
-        <Head>
+        <Head children={undefined}>
             <title>Login</title>
         </Head>
         

@@ -6,7 +6,7 @@
 import { getSession, useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/cv.module.css';
-import SideNavbar from './SideNavbar';
+import SideNavbar from '../components/SideNavbar';
 import { Button } from "@nextui-org/react";
 import Swal from 'sweetalert2';
 
@@ -16,25 +16,83 @@ function CVPage() {
 
   const [resumeData, setResumeData] = useState(null);
 
+      const defaultCV = {
+        id: 'No id information',
+        job: 'No job information',
+        country: 'No country information',
+        phone: 'No phone information',
+        email: 'No email information',
+        website: 'No website information',
+        skype: 'No skype information',
+        twitter: 'No twitter information',
+        linkedin: 'No linkedin information',
+        facebook: 'No facebook information',
+        profile: 'No profile information',
+        first_date_start: 'No first_date_start information',
+        first_date_end: 'No first_date_end information',
+        first_loc: 'No first_loc information',
+        first_company_work: 'No first_company_work information',
+        first_work: 'No first_work information',
+        second_date_start: 'No second_date_start information',
+        second_date_end: 'No second_date_end information',
+        second_company_work: 'No second_company_work information',
+        second_company_name: 'No second_company_name information',
+        second_work: 'No second_work information',
+        third_date_start: 'No third_date_start information',
+        third_date_end: 'No third_date_end information',
+        third_company_work: 'No third_company_work information',
+        third_company_name: 'No third_company_name information',
+        third_work: 'No third_work information',
+        first_date_start_edu: 'No first_date_start_edu information',
+        first_date_end_edu: 'No first_date_end_edu information',
+        first_edu: 'No first_edu information',
+        first_education: 'No first_education information',
+        second_date_start_edu: 'No second_date_start_edu information',
+        second_date_end_edu: 'No second_date_end_edu information',
+        second_edu: 'No second_edu information',
+        skill_1: 'No skill_1 information',
+        slider_1: 'No slider_1 information',
+        skill_2: 'No skill_2 information',
+        slider_2: 'No slider_2 information',
+        skill_3: 'No skill_3 information',
+        slider_3: 'No slider_3 information',
+        skill_4: 'No skill_4 information',
+        slider_4: 'No slider_4 information',
+    };
+
+
   useEffect(() => {
     async function fetchResumeData() {
-      const userId = session.user.id; // replace with the actual user ID
-      const response = await fetch(`http://localhost:3000/api/auth/getcv?userId=${userId}`);
-      const data = await response.json();
-      console.log(data)
-      setResumeData(data);
+      try {
+        const userId = session.user.id; // replace with the actual user ID
+        const response = await fetch(`http://localhost:3000/api/auth/getcv?userId=${userId}`);
+        const data = await response.json();
+  
+        if (!data || Object.keys(data).length === 0) {
+          setResumeData(defaultCV);
+        } else {
+          setResumeData(data);
+        }
+  
+      } catch (error) {
+        console.error("An error occurred while fetching the resume data:", error);
+        setResumeData(defaultCV);
+      }
     }
+  
     fetchResumeData();
   }, []);
-
+  
   if (!resumeData) {
     return <div>Loading...</div>;
   }
-
+  
    const getFormValues = async () => {
-    const id= session.user.id;
+    const user= session.user.id;
     const job = (document.getElementById('job') as HTMLInputElement).value;
-
+    const image = session.user.image;
+    const firstname = session.user.firstname;
+    const lastname = session.user.lastname;
     const country = (document.getElementById('country') as HTMLInputElement).value;
     const phone = (document.getElementById('phone') as HTMLInputElement).value;
     const email = (document.getElementById('email') as HTMLInputElement).value;
@@ -75,7 +133,10 @@ function CVPage() {
    const skill_4 = (document.getElementById('skill_4') as HTMLInputElement).value;
    const slider_4 = (document.getElementById('slider_4') as HTMLInputElement).value;
    const data = {
-    id,
+    user,
+    image,
+    firstname,
+    lastname,
     job,
     country,
     phone,
@@ -153,10 +214,12 @@ function CVPage() {
           <div className={styles.leftsection}>
 
             <div className={styles.profile}>
-              <img src={session.user.image} className={styles.profileimg} />
+              <img src={session.user.image} className={styles.profileimg}   />
               <div className={styles.bluebox}></div>
             </div>
-            <h2 className={styles.name}>{session.user.firstname} <br /><span>{session.user.lastname}</span></h2>
+            <h2 className={styles.name}>{session.user.firstname}
+             <br />
+            <span>{session.user.lastname}</span></h2>
             <p className={styles.np}><input className={styles.fname} type="text" id="job" name="job" defaultValue={resumeData.job} /></p>
 
 

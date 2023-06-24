@@ -35,6 +35,16 @@ export default function Question({ questions, hideExercise, finishTest }) {
     }, []);
     
     useEffect(() => {
+    const timer = setInterval(() => {
+        setRemainingTime((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => {
+        clearInterval(timer);
+    };
+}, []);
+
+    useEffect(() => {
         if (remainingTime <= 0) {
             submitAnswer();
         }

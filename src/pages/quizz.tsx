@@ -10,24 +10,46 @@ import {  useState } from "react";
 import { FaArrowLeft, FaDownload } from "react-icons/fa";
 import Question from "../components/Question";
 import ExerciseList from "../components/ExerciceList";
-import SideNavbar from "./SideNavbar";
+import SideNavbar from "../components/SideNavbar";
 import QuizResults from './doughuntchart';
 import { getSession, useSession } from 'next-auth/react';
 import styles from '../styles/quizz.module.css';
 import Swal from "sweetalert2";
 
-export function getServerSideProps() {
-    const exercises = [
-        { id: 0, title: "Linux Test" },
-        { id: 1, title: "Javascript Test" },
-    ];
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
 
+  if (!session) {
     return {
-        props: {
-            exercises,
-        },
-    };
-}function letterToIndex(letter, returnLetter = false) {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+
+  // Fetch your API
+  const res = await fetch('http://localhost:3000/api/auth/fetchquizz');
+  const exercises = await res.json();
+
+  // Transform your exercises data to match your app structure
+  const transformedExercises = exercises.map(exercise => ({
+    id: exercise.id,
+    title: exercise.quizTitle,
+    exerciseId: exercise.exerciseId,
+    question: exercise.question,
+    answers: exercise.answers,
+    correctAnswer: exercise.correctAnswer === 'a' ? 0 : 1, // assuming 'a' maps to 0 and 'b' maps to 1
+  }));
+console.log("transformedExercises",transformedExercises)
+  return {
+    props: {
+      exercises: transformedExercises,
+      session,
+    }
+  };
+}
+function letterToIndex(letter, returnLetter = false) {
   if (!letter) return -1;
   if (returnLetter) return letter;
   const lowerLetter = letter.toLowerCase();
@@ -224,260 +246,13 @@ function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tab
 
   return renderButton() ;
 }
-export function getQuestions(exerciseId) {
-    const allQuestions  = [
-        {
-            id: 1,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher le contenu d'un fichier en ligne de commande ?",
-            answers: [
-              "cat",
-              "ls",
-              "cd",
-              "pwd"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 2,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour créer un nouveau dossier en ligne de commande ?",
-            answers: [
-              "mkdir",
-              "touch",
-              "cp",
-              "rm"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 3,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour changer les permissions d'un fichier en ligne de commande ?",
-            answers: [
-              "chmod",
-              "chown",
-              "chgrp",
-              "umask"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 4,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher le contenu d'un dossier en ligne de commande ?",
-            answers: [
-              "ls",
-              "cat",
-              "cd",
-              "pwd"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 5,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour supprimer un fichier en ligne de commande ?",
-            answers: [
-              "rm",
-              "mv",
-              "cp",
-              "touch"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 6,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher l'adresse IP d'une machine en ligne de commande ?",
-            answers: [
-              "ifconfig",
-              "ip",
-              "ping",
-              "netstat"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 7,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher le contenu d'un fichier page par page en ligne de commande ?",
-            answers: [
-              "less",
-              "more",
-              "cat",
-              "head"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 8,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher les processus en cours d'exécution en ligne de commande ?",
-            answers: [
-              "ps",
-              "kill",
-              "top",
-              "jobs"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 9,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour copier des fichiers en ligne de commande ?",
-            answers: [
-              "cp",
-              "mv",
-              "rm",
-              "touch"
-            ],
-            correctAnswer: "a"
-          },
-          {
-            id: 10,
-            exerciseId: 0,
-            question: "Quelle commande est utilisée pour afficher la liste des utilisateurs connectés en ligne de commande ?",
-            answers: [
-              "who",
-              "w",
-              "users",
-              "last"
-            ],
-            correctAnswer: "a"
-          },
-          {    id: 1,    exerciseId: 1,    question: "Quelle est la méthode utilisée pour ajouter un élément à la fin d'un tableau en JavaScript ?",    answers: [      "append()",      "push()",      "add()",      "concat()"    ],
-          correctAnswer: "b"
-        },
-        {
-          id: 2,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour supprimer le dernier élément d'un tableau en JavaScript ?",
-          answers: [
-            "pop()",
-            "delete()",
-            "remove()",
-            "splice()"
-          ],
-          correctAnswer: "a"
-        },
-        {
-          id: 3,
-          exerciseId: 1,
-          question: "Quel est l'opérateur utilisé pour la comparaison stricte en JavaScript ?",
-          answers: [
-            "==",
-            "===",
-            "!=",
-            "!=="
-          ],
-          correctAnswer: "b"
-        },
-        {
-          id: 4,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour concaténer deux chaînes de caractères en JavaScript ?",
-          answers: [
-            "concat()",
-            "join()",
-            "slice()",
-            "split()"
-          ],
-          correctAnswer: "a"
-        },
-        {
-          id: 5,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour convertir une chaîne de caractères en entier en JavaScript ?",
-          answers: [
-            "toNumber()",
-            "toInt()",
-            "parseInt()",
-            "convertToNumber()"
-          ],
-          correctAnswer: "c"
-        },
-        {
-          id: 6,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour obtenir le nombre d'éléments dans un tableau en JavaScript ?",
-          answers: [
-            "count()",
-            "length()",
-            "size()",
-            "getLength()"
-          ],
-          correctAnswer: "b"
-        },
-        {
-          id: 7,
-          exerciseId: 1,
-          question: "Quel est l'objet global en JavaScript ?",
-          answers: [
-            "document",
-            "window",
-            "body",
-            "head"
-          ],
-          correctAnswer: "b"
-        },
-        {
-          id: 8,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour arrondir un nombre à l'entier le plus proche en JavaScript ?",
-          answers: [
-            "round()",
-            "floor()",
-            "ceil()",
-            "abs()"
-          ],
-          correctAnswer: "a"
-        },
-        {
-          id: 9,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour rechercher un élément dans un tableau en JavaScript ?",
-          answers: [
-            "find()",
-            "search()",
-            "lookup()",
-            "indexOf()"
-          ],
-          correctAnswer: "d"
-        },
-        {
-          id: 10,
-          exerciseId: 1,
-          question: "Quelle est la méthode utilisée pour trier les éléments d'un tableau en JavaScript ?",
-          answers: [
-            "sort()",
-            "order()",
-            "arrange()",
-            "group()"
-          ],
-          correctAnswer: "a"
-        }
-          
-    ];
-  
-    
-    const selectedQuestions = [];
-    const totalQuestions = allQuestions.filter(q => q.exerciseId === exerciseId);
-  
-    while (selectedQuestions.length < 5 && totalQuestions.length > 0) {
-      const randomIndex = Math.floor(Math.random() * totalQuestions.length);
-      const randomQuestion = totalQuestions.splice(randomIndex, 1)[0];
-      selectedQuestions.push(randomQuestion);
-    }
-  
-    return selectedQuestions;
-  }
+
 
   export default function Home ({ exercises }) {
     const initialState = {
       isExerciseShown: false,
       exerciseId: null,
-      questions: [],
+      questions: exercises, // use exercises data from props
       isExerciseDone: false,
       score: 0,
       answers:[],
@@ -502,17 +277,17 @@ export function getQuestions(exerciseId) {
           text: 'We need camera access to verify your identity!',
           footer: '<a href="">Why do I have this issue?</a>'
         });
-                  return;
+        return;
       }
-  
-      console.log("user quizz");
+    
+      // Start the exercise
       setState({
-          ...state,
-          exerciseId: id,
-          questions: getQuestions(id),
-          isExerciseShown: true,
+        ...state,
+        isExerciseShown: true,
       });
-  };
+    };
+    
+    
     const hideExercise = () => {
         setState(initialState);
     };
@@ -538,7 +313,7 @@ export function getQuestions(exerciseId) {
       return (
         <>
           <SideNavbar />
-          <Head>
+          <Head >
             <title>Quiz</title>
             <meta name="description" content="Quiz app in next js" />
           </Head>
@@ -586,3 +361,4 @@ export function getQuestions(exerciseId) {
         </>
       );
               }      
+              

@@ -563,21 +563,99 @@ model user_pack {
 
 model Users {
   id               Int      @id @default(autoincrement())
-  firstname             String
-    lastname             String
+  firstname        String
+  lastname         String
+  image            String
+  location         String
+  email            String   @unique
+  password         String
+  role             String   @default("user")
+  isVerified       Boolean  @default(false)
+  verificationCode String?
+  quizHistory      QuizHistory[]
+  quizData         QuizData[]
+  applications     Application[]
+  resume           Resume?  
+}
+
+
+model Job {
+  id            String   @id @default(uuid())
+  jobTitle      String
+  isRemote      Boolean
+  isFullTime    Boolean
+  isInternship  Boolean
+  requirements  String
+  description   String
+  expiryDate    DateTime?
+  postDate      DateTime @default(now())
+  companyId     String
+  location      String
+  industry      String
+  role          String
+  salary        String
+  company       companies  @relation(fields: [companyId], references: [id])
+  jobSkills     JobSkill[]
+  education     String?
+  experience    String?
+  applications  Application[]
+}
+
+model Application {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  jobId     String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      Users     @relation(fields: [userId], references: [id])
+  job       Job      @relation(fields: [jobId], references: [id])
+}
+
+
+
+
+model Skill {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  jobSkills JobSkill[]
+}
+
+
+model JobSkill {
+  jobId  String
+  skillId String
+  job    Job    @relation(fields: [jobId], references: [id])
+  skill  Skill  @relation(fields: [skillId], references: [id])
+
+  @@id([jobId, skillId])
+}
+
+
+
+model companies {
+  id            String   @id @default(uuid())
+  company_name             String
+    industry             String
    image             String
    location             String
   email            String   @unique
   password         String
-  role             String  @default("user")
+  role             String  @default("company")
   isVerified       Boolean  @default(false)
   verificationCode String?
-    quizHistory      QuizHistory[]
-  quizData    QuizData[]
+    jobs             Job[]
+
+   
 
 }
 model Resume {
-  id                    Int      @id 
+  id    Int    @id @default(autoincrement())
+  user  Users  @relation(fields: [userId], references: [id])
+  userId Int   @unique
+  image                 String?
+  firstname             String?
+  lastname              String?
   job                   String?
   country               String?
   phone                 String?
@@ -621,6 +699,20 @@ model Resume {
 }
 
 
+model Quiz {
+  id        Int       @id @default(autoincrement())
+  title         String
+  questions Question[]
+}
+
+model Question {
+  id            Int    @id @default(autoincrement())
+  quizId        Int
+  question      String
+  answers       Json 
+  correctAnswer String
+  quiz          Quiz   @relation(fields: [quizId], references: [id])
+}
 
 model QuizData {
   id            Int      @id @default(autoincrement())

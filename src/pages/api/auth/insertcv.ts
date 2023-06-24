@@ -1,13 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 type ResumeData = {
-  id: number;
-  job:string;
+  user: number;
+  image: string,
+  firstname:string,
+  lastname:string,
+  job: string;
   country: string;
   phone: string;
   email: string;
@@ -56,7 +57,10 @@ export default async function handler(
   if (req.method === "POST") {
     try {
       const {
-        id,
+        user,
+        image,
+        firstname,
+        lastname,
         job,
         country,
         phone,
@@ -99,12 +103,64 @@ export default async function handler(
         slider_4,
       }: ResumeData = req.body;
 
-      const existingResume = await prisma.resume.findUnique({
-        where: { id: id },
+      const existingUser = await prisma.users.findUnique({
+        where: { id: user },
+        include: { resume: true }, // Include 'resume' relation
+
       });
-      if (existingResume) {
+
+      if (existingUser && existingUser.resume) {
         const updatedResume = await prisma.resume.update({
-          where: { id: id },
+          where: { id: existingUser.resume.id },
+          data: {
+            image,
+            firstname,
+            lastname,
+            job,
+            country,
+            phone,
+            email,
+            website,
+            skype,
+            twitter,
+            linkedin,
+            facebook,
+            profile,
+            first_date_start,
+            first_date_end,
+            first_loc,
+            first_company_work,
+            first_work,
+            second_date_start,
+            second_date_end,
+            second_company_work,
+            second_company_name,
+            second_work,
+            third_date_start,
+            third_date_end,
+            third_company_work,
+            third_company_name,
+            third_work,
+            first_date_start_edu,
+            first_date_end_edu,
+            first_edu,
+            first_education,
+            second_date_start_edu,
+            second_date_end_edu,
+            second_edu,
+           skill_1,
+            slider_1,
+            skill_2,
+            slider_2,
+            skill_3,
+            slider_3,
+            skill_4,
+            slider_4,
+          },
+        });
+        res.status(200).json({ message: "Resume updated successfully", data: updatedResume });
+      } else if (existingUser) {
+        const newResume = await prisma.resume.create({
           data: {
             job,
             country,
@@ -143,73 +199,36 @@ export default async function handler(
             skill_2,
             slider_2,
             skill_3,
-
-slider_3,
-skill_4,
-slider_4,
-},
-});
-res.status(200).json({ message: "Resume updated successfully", data: updatedResume });
-} else {
-  const newResume = await prisma.resume.create({
-    data: {
-      id,
-      job,
-      country,
-      phone,
-      email,
-      website,
-      skype,
-      twitter,
-      linkedin,
-      facebook,
-      profile,
-      first_date_start,
-      first_date_end,
-      first_loc,
-      first_company_work,
-      first_work,
-      second_date_start,
-      second_date_end,
-      second_company_work,
-      second_company_name,
-      second_work,
-      third_date_start,
-      third_date_end,
-      third_company_work,
-      third_company_name,
-      third_work,
-      first_date_start_edu,
-      first_date_end_edu,
-      first_edu,
-      first_education,
-      second_date_start_edu,
-      second_date_end_edu,
-      second_edu,
-      skill_1,
-      slider_1,
-      skill_2,
-      slider_2,
-      skill_3,
-      slider_3,
-      skill_4,
-      slider_4,
-    },
-  });
-
-  res.status(200).json({ message: "New resume created", data: newResume });
-}
-} catch (error) {
-res.status(500).json({ message: "Something went wrong", error: error });
-}
-} else if (req.method === "GET") {
-    try {
-    const allResumes = await prisma.resume.findMany();
-    res.status(200).json({ data: allResumes });
+            slider_3,
+            skill_4,
+            slider_4,
+            user: {
+              connect: {
+                id: user
+              }
+            }
+          },
+        });
+        res.status(200).json({ message: "New resume created", data: newResume });
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
     } catch (error) {
-    res.status(500).json({ message: "Something went wrong", error: error });
+      res.status(500).json({ message: "Something went wrong", error: error });
     }
-    } else {
+  } else if (req.method === "GET") {
+    try {
+      const allResumes = await prisma.resume.findMany({
+        include: {
+          user: true
+        }
+      });
+      res.status(200).json({ data: allResumes });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Something went wrong", error: error });
+    }
+  } else {
     res.status(404).json({ message: "API endpoint not found" });
-    }
-    }
+  }
+}

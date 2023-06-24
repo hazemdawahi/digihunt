@@ -292,7 +292,7 @@ let currentPage = chartPage;
 const screenshotsTitleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 const screenshotsTitleFontSize = 16;
 const screenshotsTitleText = "Screenshots";
-const screenshotsTitleWidth = screenshotsTitleText.length * screenshotsTitleFontSize;
+const screenshotsTitleWidth = screenshotsTitleFont.widthOfTextAtSize(screenshotsTitleText, screenshotsTitleFontSize);
 const screenshotsTitleX = (currentPage.getWidth() - screenshotsTitleWidth) / 2;
 currentPage.drawText(screenshotsTitleText, {
   x: screenshotsTitleX,
@@ -309,21 +309,21 @@ currentPage.drawText(screenshotsTitleText, {
 
 imagesOffsetY += screenshotsTitleFontSize + 20;
 
-// Add the "User camera access denied" text
-const deniedTextFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-const deniedTextFontSize = 12;
-const deniedText = "User camera access denied";
-const deniedTextWidth = deniedText.length * deniedTextFontSize;
-const deniedTextX = (currentPage.getWidth() - deniedTextWidth) / 2;
-currentPage.drawText(deniedText, {
-  x: deniedTextX,
-  y: currentPage.getHeight() - imagesOffsetY,
-  font: deniedTextFont,
-  size: deniedTextFontSize,
-  color: textColor,
-});
+// // Add the "User camera access denied" text
+// const deniedTextFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+// const deniedTextFontSize = 12;
+// const deniedText = "User camera access denied";
+// const deniedTextWidth = deniedText.length * deniedTextFontSize;
+// const deniedTextX = (currentPage.getWidth() - deniedTextWidth) / 2;
+// currentPage.drawText(deniedText, {
+//   x: deniedTextX,
+//   y: currentPage.getHeight() - imagesOffsetY,
+//   font: deniedTextFont,
+//   size: deniedTextFontSize,
+//   color: textColor,
+// });
 
-imagesOffsetY += deniedTextFontSize + 20;
+//imagesOffsetY += deniedTextFontSize + 20;
 
 for (const image of req.body.images) {
   const imageData = await getImageDataFromUrl(image);

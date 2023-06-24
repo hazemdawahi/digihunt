@@ -58,13 +58,21 @@ export default NextAuth({
     CredentialsProvider({
       name: "Credentials",
       async authorize(credentials): Promise<UserWithVerificationCode> {
-        const user = await prisma.users.findFirst({
+         let user
+      user  = await prisma.users.findFirst({
           where: { email: credentials.email } as any,
         });
-      
+      if (!user)
+      {
+         user = await prisma.companies.findFirst({
+          where: { email: credentials.email } as any,
+        });
+
+      }
         if (!user) {
           throw new Error('Invalid email or password');
         }
+
       
         // Compare password
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
@@ -72,40 +80,25 @@ export default NextAuth({
         if (!isPasswordValid) {
           throw new Error('Invalid email or password');
         }
-      
         // Check if user is verified
     
-
         // Generate verification code if it doesn't exist in the user object
-        if (!user.verificationCode) {
-          const verificationCode = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-
-          // send verification code to user's email
-          const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false,
-            auth: {
-              user: "hazem.dawahi@esprit.tn",
-              pass: "hybsnpjcakghopup",
-            },
-          });
-      
-          const mailOptions = {
-            user: "hazem.dawahi@esprit.tn",
-            to: user.email,
-            subject: "Verification Code",
-            text: `Your verification code is ${verificationCode}.`,
-          };
-      
-          await transporter.sendMail(mailOptions);
-      
-          // Update user object with verification code in the database
-          await prisma.users.update({
-            where: { id: user.id },
-            data: { verificationCode }
-          });
-        }
+          // Check if user is verified
+          if (!user.verificationCode) {
+            user = await sendVerificationCode(user);
+            // Update user object with verification code in the database
+            if (user.hasOwnProperty('firstname')) {
+              await prisma.users.update({
+                where: { id: user.id },
+                data: { verificationCode: user.verificationCode }
+              });
+            } else if (user.hasOwnProperty('companyName')) {
+              await prisma.companies.update({
+                where: { id: user.id },
+                data: { verificationCode: user.verificationCode }
+              });
+            }
+          }
       
         // Return user object with verification code
         const userWithVerificationCode = {

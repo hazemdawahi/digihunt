@@ -7,7 +7,7 @@ import styles from '../../styles/Home.module.css'
 import Link from 'next/link'
 import { useState } from 'react'
 import { getSession, useSession ,signOut} from "next-auth/react"
-import SideNavbar from '../SideNavbar'
+import SideNavbar from '../../components/SideNavbar'
 
 export default function Home() {
 

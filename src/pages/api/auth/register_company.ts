@@ -17,25 +17,26 @@ export default async function handler(
     return;
   }
 
-  const { firstname,lastname, email, password: plainTextPassword, role,location } = req.body;
+  const { companyname,industry, email, password: plainTextPassword, role,location } = req.body;
+  console.log(req.body)
   const password = await bcrypt.hash(plainTextPassword, 10);
 console.log(email);
-const existingUser = await prisma.users.findFirst({
-  where: { email: email } as any,
-});
-const existingcompanies = await prisma.companies.findFirst({
-  where: { email: email } as any,
-});
+  const existingUser = await prisma.users.findFirst({
+    where: { email: email } as any,
+  });
+  const existingcompanies = await prisma.companies.findFirst({
+    where: { email: email } as any,
+  });
 console.log(existingUser)
   if (existingUser && existingcompanies) {
     res.status(409).json({ message: 'Email already taken' });
     return;
   }
-  const image ="https://api.dicebear.com/5.x/initials/png?seed="+firstname
-  const user = await prisma.users.create({
+  const image ="https://api.dicebear.com/5.x/initials/png?seed="+companyname
+  const company = await prisma.companies.create({
     data: {
-      firstname: firstname,
-      lastname:lastname,
+      company_name: companyname,
+      industry:industry,
       image:image,
       location:location,
       email: email,
@@ -44,5 +45,5 @@ console.log(existingUser)
     },
   });
 
-  res.status(201).json({ user });
+  res.status(201).json({ company });
 }
