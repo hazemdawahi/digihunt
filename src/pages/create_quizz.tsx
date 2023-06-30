@@ -1,34 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SideNavbar from '../components/SideNavbar';
 import { getSession } from 'next-auth/react';
 
-const CreateQuizz = () => {
-  const [quizTitle, setQuizTitle] = useState('');  // New state for quiz title
+const CreateQuizz = ({ companyId }) => {
+  const [quizTitle, setQuizTitle] = useState(''); 
+  const [quizType, setQuizType] = useState('');  
+  const [timeInMins, setTimeInMins] = useState(''); // State for timer in minutes
+  const [level, setLevel] = useState(''); // New state for quiz type
   const [questions, setQuestions] = useState([
     { id: 1, question: '', answers: [''], correctAnswer: '' },
   ]);
 
+  
   const handlePublish = async () => {
-    console.log(questions)
     try {
       const response = await fetch('http://localhost:3000/api/auth/createQuizz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ questions,quizTitle }),
+        body: JSON.stringify({ 
+          questions, 
+          quizTitle, 
+          quizType, 
+          companyId, 
+          timeInMins, 
+          level, 
+          questionNum: questions.length 
+        }),
       });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
       console.log(data);
     } catch (error) {
       console.error(error);
     }
   };
+  
   const handleQuestionAdd = () => {
     const newQuestion = {
       id: questions.length + 1,
@@ -40,8 +52,7 @@ const CreateQuizz = () => {
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
   };
 
-
-  const handleQuestionChange = (index: number, value: string) => {
+  const handleQuestionChange = (index, value) => {
     setQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
       updatedQuestions[index].question = value;
@@ -49,7 +60,7 @@ const CreateQuizz = () => {
     });
   };
 
-  const handleAnswerChange = (questionIndex: number, answerIndex: number, value: string) => {
+  const handleAnswerChange = (questionIndex, answerIndex, value) => {
     setQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
       updatedQuestions[questionIndex].answers[answerIndex] = value;
@@ -57,7 +68,7 @@ const CreateQuizz = () => {
     });
   };
 
-  const handleAnswerAdd = (questionIndex: number) => {
+  const handleAnswerAdd = (questionIndex) => {
     setQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
       updatedQuestions[questionIndex] = {
@@ -68,8 +79,7 @@ const CreateQuizz = () => {
     });
   };
   
-
-  const handleCorrectAnswerSelect = (questionIndex: number, value: string) => {
+  const handleCorrectAnswerSelect = (questionIndex, value) => {
     setQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
       updatedQuestions[questionIndex].correctAnswer = value; // directly assign value to correctAnswer
@@ -77,8 +87,7 @@ const CreateQuizz = () => {
     });
   };
 
-
-  const handleQuestionRemove = (index: number) => {
+  const handleQuestionRemove = (index) => {
     setQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
       updatedQuestions.splice(index, 1);
@@ -94,17 +103,71 @@ const CreateQuizz = () => {
           Add question
         </button>
       </header>
-      <main className="container mx-auto text-center  pl-50 flex-grow">
+      <main className="container mx-auto text-center pl-50 flex-grow">
         <div className="container mx-auto p-4">
           <h1 className="text-2xl font-bold mb-4">Create Quiz</h1>
 
-          <input  // new input field for quiz title
-            type="text"
-            value={quizTitle}
-            onChange={(e) => setQuizTitle(e.target.value)}
-            placeholder="Enter the quiz title"
-            className="border border-gray-300 rounded px-3 py-2 mb-2 w-600 h-12"
-          />
+          <div className="mb-4">
+            <label htmlFor="quizTitle" className="block mb-2 font-medium">
+              Quiz Title
+            </label>
+            <input
+              id="quizTitle"
+              type="text"
+              value={quizTitle}
+              onChange={(e) => setQuizTitle(e.target.value)}
+              placeholder="Enter the quiz title"
+              className="border border-gray-300 rounded px-3 py-2 mb-2  h-12"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="quizType" className="block mb-2 font-medium">
+              Quiz Type
+            </label>
+            <select
+              id="quizType"
+              value={quizType}
+              onChange={(e) => setQuizType(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
+            >
+              <option value=''>Select Quiz Type</option>
+              <option value='psychometric'>Psychometric Quiz</option>
+              <option value='skillset'>Skill Set Quiz</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="timeInMins" className="block mb-2 font-medium">
+              Time in Minutes
+            </label>
+            <input
+              id="timeInMins"
+              type="number"
+              value={timeInMins}
+              onChange={(e) => setTimeInMins(e.target.value)}
+              placeholder="Enter the quiz time in minutes"
+              className="border border-gray-300 rounded px-3 py-2 mb-2  h-12"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="level" className="block mb-2 font-medium">
+              Quiz Level
+            </label>
+            <select
+              id="level"
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
+            >
+              <option value=''>Select Quiz Level</option>
+              <option value='easy'>Easy</option>
+              <option value='medium'>Medium</option>
+              <option value='hard'>Hard</option>
+            </select>
+          </div>
+
           {questions.map((question, index) => (
             <div key={question.id} className="mb-4 p-4 bg-white rounded">
               <label htmlFor={`question${question.id}`} className="block mb-2 font-medium">
@@ -115,7 +178,7 @@ const CreateQuizz = () => {
                 placeholder="Enter a question"
                 value={question.question}
                 onChange={(e) => handleQuestionChange(index, e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 mb-2 w-600 h-12 resize-none"
+                className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
               />
 
               {question.answers.map((answer, answerIndex) => (
@@ -128,7 +191,7 @@ const CreateQuizz = () => {
                     placeholder="Enter an answer"
                     value={answer || ''}
                     onChange={(e) => handleAnswerChange(index, answerIndex, e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-2 mb-2 w-600 h-12 resize-none"
+                    className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
                   />
                 </div>
               ))}
@@ -138,19 +201,18 @@ const CreateQuizz = () => {
                   Correct Answer
                 </label>
                 <select
-            id={`correctAnswer${question.id}`}
-            value={question.correctAnswer}
-            onChange={(e) => handleCorrectAnswerSelect(index, e.target.value)} // directly pass e.target.value
-            className="border border-gray-300 rounded px-3 py-2 mb-2 w-600 h-12 resize-none"
-          >
-            <option value=''>Select Correct Answer</option>
-            {question.answers.map((_, answerIndex) => (
-              <option key={answerIndex} value={String.fromCharCode(97 + answerIndex)}>
-                Answer {String.fromCharCode(97 + answerIndex).toUpperCase()} {/* map index to letter starting from 'A' */}
-              </option>
-            ))}
-          </select>
-
+                  id={`correctAnswer${question.id}`}
+                  value={question.correctAnswer}
+                  onChange={(e) => handleCorrectAnswerSelect(index, e.target.value)} // directly pass e.target.value
+                  className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
+                >
+                  <option value=''>Select Correct Answer</option>
+                  {question.answers.map((_, answerIndex) => (
+                    <option key={answerIndex} value={String.fromCharCode(97 + answerIndex)}>
+                      Answer {String.fromCharCode(97 + answerIndex).toUpperCase()} {/* map index to letter starting from 'A' */}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex justify-center">
@@ -167,7 +229,7 @@ const CreateQuizz = () => {
       </main>
 
       <footer className="bg-white py-4 text-center">
-      <button onClick={handlePublish} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button onClick={handlePublish} className="bg-blue-500 text-white px-4 py-2 rounded">
           Publish
         </button>
       </footer>
@@ -198,6 +260,7 @@ export async function getServerSideProps({ req }) {
   return {
     props: {
       session,
+      companyId: session.user.id, // Assuming you have companyId in your session
     },
   };
 }

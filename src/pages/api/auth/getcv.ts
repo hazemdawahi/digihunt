@@ -5,8 +5,8 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
-  const userId = Number(req.query.id)
-
+  const userId = Number(req.query.userId)
+console.log(userId)
   if (req.method === 'GET') {
     const resume = await prisma.resume.findUnique({
       where: {

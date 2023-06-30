@@ -578,7 +578,6 @@ model Users {
   resume           Resume?  
 }
 
-
 model Job {
   id            String   @id @default(uuid())
   jobTitle      String
@@ -599,7 +598,10 @@ model Job {
   education     String?
   experience    String?
   applications  Application[]
+  jobQuizzes    JobQuiz[] // Added this field
 }
+
+
 
 model Application {
   id        Int      @id @default(autoincrement())
@@ -635,19 +637,17 @@ model JobSkill {
 
 model companies {
   id            String   @id @default(uuid())
-  company_name             String
-    industry             String
-   image             String
-   location             String
-  email            String   @unique
-  password         String
-  role             String  @default("company")
-  isVerified       Boolean  @default(false)
+  company_name  String
+  industry      String
+  image         String
+  location      String
+  email         String   @unique
+  password      String
+  role          String   @default("company")
+  isVerified    Boolean  @default(false)
   verificationCode String?
-    jobs             Job[]
-
-   
-
+  jobs          Job[]
+  quizzes       Quiz[]
 }
 model Resume {
   id    Int    @id @default(autoincrement())
@@ -698,12 +698,29 @@ model Resume {
   slider_4              String?
 }
 
-
 model Quiz {
-  id        Int       @id @default(autoincrement())
-  title         String
-  questions Question[]
+  id          Int       @id @default(autoincrement())
+  title       String
+  type        String
+  companyId   String
+  questions   Question[]
+  company     companies @relation(fields: [companyId], references: [id])
+  timeInMins  Int       // Time in minutes
+  level       String    // Level of difficulty: easy, medium, or hard
+  questionNum Int       // Number of questions
+  jobQuizzes  JobQuiz[] // Added this field
 }
+
+model JobQuiz {
+  id     Int     @id @default(autoincrement())
+  jobId  String
+  quizId Int?
+  job    Job    @relation(fields: [jobId], references: [id])
+  quiz   Quiz?   @relation(fields: [quizId], references: [id])
+
+  @@unique([jobId, quizId])
+}
+
 
 model Question {
   id            Int    @id @default(autoincrement())
@@ -711,6 +728,7 @@ model Question {
   question      String
   answers       Json 
   correctAnswer String
+  userAnswer    String?  // Add this field
   quiz          Quiz   @relation(fields: [quizId], references: [id])
 }
 
@@ -725,10 +743,17 @@ model QuizData {
 }
 
 model QuizHistory {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  exerciseTitle String
-  score         Int
-  createdAt     DateTime @default(now())
-  Users         Users    @relation(fields: [userId], references: [id])
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  user             Users    @relation(fields: [userId], references: [id])
+  quizId           Int      // Just added this field
+  exerciseTitle    String
+  score            Int
+  questions        Json
+  answers          Json
+  timeSpent        String
+  tabSwitchCount   Int
+  totalDuration    String
+  remainingTime    String
+  images           Json
 }

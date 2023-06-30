@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import FilterComponent from '../components/filtercomponent';
-import SideNavbar from '../components/SideNavbar';
-import JobCard from '../components/jobcard';
+import FilterComponent from '../../components/filtercomponent';
+import SideNavbar from '../../components/SideNavbar';
+import JobCard from '../../components/jobcard';
 import { getSession, useSession } from 'next-auth/react';
 import { InferGetServerSidePropsType } from 'next';
+import Swal from 'sweetalert2';
 
 
 
@@ -36,12 +37,24 @@ export default function Offers({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { data: session, status: loading } = useSession();
   const [handleApply, setHandleApply] = useState(() => () => {});
+  const [handleCheckQuiz, setHandleCheckQuiz] = useState(() => async (jobId: string) => {});
   const [filteredJobs, setFilteredJobs] = useState(jobs);
   useEffect(() => {
     if (loading === 'authenticated') {
       setHandleApply(() => async (jobId: string) => {
         console.log(`Applying for job: ${jobId}`);
         try {
+          const quizData = await handleCheckQuiz(jobId);
+  
+          if (!quizData.hasCompletedRequiredQuizzes) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Quizzes Missing',
+              text: `You have not taken the following quizzes: ${quizData.missingQuizzes.join(", ")}`,
+            });
+            return; // Do not proceed with applying if quizzes are not complete
+          }
+  
           console.log(session)
           const response = await fetch('/api/auth/apply', {
             method: 'POST',
@@ -51,28 +64,52 @@ export default function Offers({
             body: JSON.stringify({ userId: session?.user?.id, jobId }),
           });
   
-          console.log("Response status:", response.status);
-          console.log("Response ok:", response.ok);
-  
           if (!response.ok) {
             const responseBody = await response.text();
             console.error("Server response:", responseBody);
             throw new Error("Failed to apply for job");
           }
   
-          // Handle successful application
           console.log("Successfully applied for job");
           window.location.reload();
-
-  
+    
         } catch (error) {
-          // Handle error
           console.error("An error occurred:", error);
         }
       });
+  
+      const handleCheckQuiz = async (jobId: string) => {
+        try {
+          const response = await fetch('/api/auth/checkQuizz', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: session?.user?.id, jobId }),
+          });
+  
+          
+  
+          if (!response.ok) {
+            const responseBody = await response.text();
+            console.error("Server response:", responseBody);
+            throw new Error("Failed to check quiz");
+          }
+  
+          console.log("Successfully checked quiz");
+          const quizData = await response.json();
+          return quizData; // Return quiz data for further processing
+    
+        } catch (error) {
+          console.error("An error occurred:", error);
+        }
+      };
+  
+      // Set the function to state so it can be used outside of the useEffect hook
+      setHandleCheckQuiz(() => handleCheckQuiz);
     }
   }, [session, loading]);
-
+  
  
   const handleFilter = (filters) => {
     // Check if all filter values are empty first

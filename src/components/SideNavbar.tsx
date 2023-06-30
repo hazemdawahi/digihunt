@@ -126,12 +126,7 @@ function SideNavbar() {
                   Offers
                 </h3>
               </div>
-              <div className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto">
-                <BiMessageSquareDots className="text-2xl text-blue-600 group-hover:text-white " />
-                <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
-                  Messages
-                </h3>
-              </div>
+           
             </div>
             {/* setting  */}
             <div className=" my-4 border-b border-gray-100 pb-4">
@@ -212,12 +207,7 @@ function SideNavbar() {
                 Offers
               </h3>
             </div>
-            <div className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto">
-              <BiMessageSquareDots className="text-2xl text-blue-600 group-hover:text-white " />
-              <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
-                Messages
-              </h3>
-            </div>
+          
             <div className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto">
               <MdOutlineSettings className="text-2xl text-blue-600 group-hover:text-white " />
               <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">

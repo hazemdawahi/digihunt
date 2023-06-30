@@ -16,7 +16,8 @@ export default function Question({ questions, hideExercise, finishTest }) {
     const [state, setState] = useState(initialState);
     const { currentQuestion, answers, numberOfQuestions, timeSpent, tabSwitchCount } = state;
     const question = questions[currentQuestion];
-    const [remainingTime, setRemainingTime] = useState(5 * 60);
+    
+    const [remainingTime, setRemainingTime] = useState(questions[0].timeInMins * 60);
     const startTime = useRef(Date.now());
     const isHiddenRef = useRef(false);
 
@@ -25,6 +26,7 @@ export default function Question({ questions, hideExercise, finishTest }) {
     let imageCaptureInterval = null;
 
     useEffect(() => {
+        console.log(questions)
         imageCaptureInterval = setInterval(() => {
             const imageSrc = webcamRef.current.getScreenshot();
             capturedImages.current.push(imageSrc);

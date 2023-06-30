@@ -13,9 +13,9 @@ import path from 'path';
 import fs from 'fs';
 const prisma = new PrismaClient();
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { Chart, ChartItem, LinearScale, CategoryScale, BarElement } from 'chart.js';
+import { Chart, ChartItem, LinearScale, CategoryScale, BarController, BarElement } from 'chart.js/auto';
 import { createCanvas } from 'canvas';
-Chart.register(LinearScale, CategoryScale, BarElement);
+Chart.register(LinearScale, CategoryScale, BarController, BarElement);
 
 const handler = nc<NextApiRequest, NextApiResponse>();
 
@@ -65,9 +65,8 @@ handler.post(async (req, res) => {
     // Quiz information
     const quizInfo = [
       { key: 'Type', value: 'Quiz' },
-      { key: 'Language', value: 'French' },
-      { key: 'Duration', value: '5 minutes' },
-      { key: 'Number of Questions', value: '5' },
+       { key: 'Duration', value: req.body.quiz.timeInMins + ' minutes' },
+      { key: 'Number of Questions', value: req.body.quiz.questionNum },
     ];
     const detailsTitleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const detailsTitleFontSize = 16;
@@ -134,12 +133,13 @@ handler.post(async (req, res) => {
       color: scoreColor,
     });
 
-    // Draw a bar chart for correct and incorrect answers
     const canvas = createCanvas(350, 150);
     const ctx = canvas.getContext('2d');
 
     const correctAnswersCount = req.body.score;
     const incorrectAnswersCount = req.body.questions.length - correctAnswersCount;
+    console.log("correctAnswersCount", correctAnswersCount)
+    console.log("incorrectAnswersCount", incorrectAnswersCount)
 
     const chart = new Chart(ctx as unknown as ChartItem, {
       type: 'bar',
@@ -163,6 +163,8 @@ handler.post(async (req, res) => {
         },
       },
     });
+
+    // Convert the chart to an image
 
     const chartImage = await pdfDoc.embedPng(new Uint8Array(canvas.toBuffer()));
     const chartImageDims = { width: 350, height: 150 };

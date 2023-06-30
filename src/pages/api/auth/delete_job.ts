@@ -14,6 +14,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    // Delete associated JobQuiz records
+    await prisma.application.deleteMany({
+      where: {
+        jobId: jobId,
+      },
+    });
+    await prisma.jobQuiz.deleteMany({
+      where: {
+        jobId: jobId,
+      },
+    });
+
     // Delete the job from the database
     await prisma.job.delete({
       where: {

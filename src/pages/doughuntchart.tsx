@@ -45,7 +45,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ score, totalQuestions }) => {
 
   return (
     <div>
-      <h1>Quiz Results</h1>
+     <center> <h1>Quiz Results</h1> </center>
       <div className={styles.sized_box}></div>
 
       <div style={{ width: '300px', height: '300px' }}>

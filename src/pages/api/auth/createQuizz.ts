@@ -1,29 +1,34 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-type Data = {
-  status: string
-}
-
-const prisma = new PrismaClient()
 type ApiResponse =
 | { status: 'success'; quizId: number }
 | { status: 'error'; message: string };
+
+const prisma = new PrismaClient()
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
 ) {
   console.log(req.method)
   if (req.method === 'POST') {
-    const { quizTitle, questions } = req.body; // Include title in the destructure
-console.log("quizTitle",quizTitle)
+    const { quizTitle, questions, quizType, companyId, timeInMins, level, questionNum } = req.body;
+    console.log("quizTitle",quizTitle)
     try {
-      // Start a transaction
       const result = await prisma.$transaction(async (prisma) => {
-        // Create a new quiz with title
-        const quiz = await prisma.quiz.create({ data: { title: quizTitle } }) // Include title when creating quiz
+        const quiz = await prisma.quiz.create({ 
+          data: { 
+            title: quizTitle, 
+            type: quizType, 
+            companyId: companyId,
+            timeInMins: parseInt(timeInMins),  // Convert string to integer
+            level: level,
+            questionNum: questionNum
+          } 
+        })
 
-        // Create each question associated with the quiz
+
         for (let question of questions) {
           await prisma.question.create({
             data: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getSession, useSession } from 'next-auth/react';
 import SideNavbar from '../components/SideNavbar';
 import {
@@ -40,6 +40,8 @@ export default function create_job({ jobs }) {
 
   const { data: session } = useSession();
   const [visible, setVisible] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+
   const handler = () => setVisible(true);
 
   const closeHandler = () => {
@@ -48,6 +50,16 @@ export default function create_job({ jobs }) {
   };
 
   console.log(session);
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      const res = await fetch('/api/auth/quizz_titles');
+      const data = await res.json();
+      setQuizzes(data);
+    };
+  
+    fetchQuizzes();
+  }, []);
   const handleSkillsChange = (skills) => {
     formik.setFieldValue('skills', skills);
   };
@@ -79,6 +91,7 @@ export default function create_job({ jobs }) {
   };
   const formik = useFormik({
     initialValues: {
+      quizId: '',
       jobTitle: '',
       requirements: '',
       description: '',
@@ -103,6 +116,7 @@ export default function create_job({ jobs }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          quizId: values.quizId,
           jobTitle: values.jobTitle,
           requirements: values.requirements,
           description: values.description,
@@ -115,6 +129,8 @@ export default function create_job({ jobs }) {
           role: values.role,
           salary: values.salary,
           skills: values.skills,
+          education:values.education,
+          experience:values.experience,
           expiryDate: new Date(),
         }),
       });
@@ -292,6 +308,20 @@ export default function create_job({ jobs }) {
   onBlur={() => formik.setFieldTouched('skills', true)}
   placeholder="Skills"
 />
+</div>
+<div className="border p-2 w-full">
+<select
+  className="w-full" // added w-full here
+  name="quizId"
+  onChange={formik.handleChange}
+  value={formik.values.quizId}
+>
+  <option value="">Select Quiz</option>
+  {quizzes.map(quiz => (
+    <option key={quiz.id} value={quiz.id}>{quiz.title} ({quiz.type})</option>
+  ))}
+</select>
+
 </div>
 
         <div className="flex space-x-4">

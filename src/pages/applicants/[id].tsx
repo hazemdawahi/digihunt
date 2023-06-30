@@ -23,7 +23,9 @@ export default function Applicants() {
         },
         body: JSON.stringify({ jobId: id }),
       });
-      const data = await response.json();
+      const data = await response.json();      
+      console.log(data)
+
       const pendingApplications = data.applications.filter(app => app.status === 'pending');
       setApplications(pendingApplications);
     }
@@ -107,6 +109,8 @@ export default function Applicants() {
         <th className="py-2 px-4 border border-blue-300 bg-blue-100">Email</th>
         <th className="py-2 px-4 border border-blue-300 bg-blue-100">Location</th>
         <th className="py-2 px-4 border border-blue-300 bg-blue-100">CV</th>
+        <th className="py-2 px-4 border border-blue-300 bg-blue-100">Quizz</th>
+
         <th className="py-2 px-4 border border-blue-300 bg-blue-100">Action</th>
       </tr>
     </thead>
@@ -129,7 +133,16 @@ export default function Applicants() {
 )}
 
 </td>
-
+<td className="py-2 px-4 border border-blue-300">
+{app.user.quizHistory.length > 0 ? (
+  <FontAwesomeIcon 
+    icon={faFilePdf} 
+    onClick={() => window.open(`/results/${app.user.id}`, "_blank")}
+/>
+  ) : (
+    <p>No quizzes completed</p>
+  )}
+</td>
 
           <td className="py-2 px-4 border border-blue-300 flex justify-around">
             <button onClick={() => acceptApplication(app.id)} className="bg-green-500 text-white rounded p-1">
@@ -139,6 +152,7 @@ export default function Applicants() {
               <FontAwesomeIcon icon={faBan} />
             </button>
           </td>
+          
         </tr>
       ))}
   </tbody>

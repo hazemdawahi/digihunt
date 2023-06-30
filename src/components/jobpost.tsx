@@ -1,5 +1,5 @@
 import React from 'react';
-import { Job } from '../pages/offers';
+import { Job } from '../pages/offers/[id]';
 import { MdLocationOn, MdWork, MdAttachMoney } from "react-icons/md";
 import { useRouter } from 'next/router'
 

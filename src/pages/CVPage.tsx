@@ -65,9 +65,10 @@ function CVPage() {
     async function fetchResumeData() {
       try {
         const userId = session.user.id; // replace with the actual user ID
+        console.log("userId",userId)
         const response = await fetch(`http://localhost:3000/api/auth/getcv?userId=${userId}`);
         const data = await response.json();
-  
+  console.log(data)
         if (!data || Object.keys(data).length === 0) {
           setResumeData(defaultCV);
         } else {

@@ -11,27 +11,29 @@ export default async function handle(req, res) {
 
   try {
     const applications = await prisma.application.findMany({
-        where: {
-          jobId: jobId // Change this line
+      where: {
+        jobId: jobId
+      },
+      include: {
+        user: {
+          include: {
+            resume: true,
+            quizHistory: true  // Fetch the quiz history
+          }
         },
-        include: {
-          user: {
-            include: {
-              resume: true
-            }
-          },
-          job: {
-            include: {
-              jobSkills: {
-                include: {
-                  skill: true
-                }
-              },
-              company: true
-            }
+        job: {
+          include: {
+            jobSkills: {
+              include: {
+                skill: true
+              }
+            },
+            company: true
           }
         }
-      });
+      }
+  });
+  
       
     return res.json({ applications });
 

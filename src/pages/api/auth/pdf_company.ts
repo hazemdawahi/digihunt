@@ -69,9 +69,8 @@ handler.post(async (req, res) => {
   // Quiz information
   const quizInfo = [
     { key: 'Type', value: 'Quiz' },
-    { key: 'Language', value: 'French' },
-    { key: 'Duration', value: '5 minutes' },
-    { key: 'Number of Questions', value: '5' },
+     { key: 'Duration', value: req.body.quiz.timeInMins + ' minutes' },
+    { key: 'Number of Questions', value: req.body.quiz.questionNum },
   ];
   const detailsTitleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const detailsTitleFontSize = 16;
@@ -151,8 +150,8 @@ page.drawText("Questions & Answers", {
 
 offsetY = offsetY + 140;
 let questionNumber = 1;
-for (const question of req.body.questions) {
-  const questionText = `Q${questionNumber}: ${question.question}`;
+for (const [index, question] of req.body.questions.entries()) {
+  const questionText = `Q${index + 1}: ${question.question}`;
   page.drawText(questionText, {
     x: 30,
     y: height - offsetY,
@@ -163,7 +162,8 @@ for (const question of req.body.questions) {
   offsetY += fontSize + 5;
 
   const userAnswer = question.userAnswer.toUpperCase();
-  const correctAnswer = question.correctAnswer.toUpperCase();
+  const correctAnswerIndex = req.body.quiz.questions[index].correctAnswer.charCodeAt(0) - "a".charCodeAt(0);
+  const correctAnswer = JSON.parse(req.body.quiz.questions[index].answers)[correctAnswerIndex].toUpperCase();
 
   const userAnswerText = `Your answer: ${userAnswer}`;
   const correctAnswerText = `Correct answer: ${correctAnswer}`;
@@ -209,12 +209,8 @@ for (const question of req.body.questions) {
     color: textColor,
   });
   offsetY += fontSize + 10;
-
-
- 
-  // Check if the current page is full
- 
 }
+
 
 // Draw a bar chart for correct and incorrect answers
 const chartPage = pdfDoc.addPage([600, 800]);
