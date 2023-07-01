@@ -32,8 +32,13 @@ function SideNavbar() {
   }
 
   function quiznavigate() {
-    router.push("/quizz");
+    if (session.user.role === "company") {
+      router.push("/create_quizz");
+    } else {
+      router.push("/quizz");
+    }
   }
+  
   function offers() {
     router.push("/offers");
   }
@@ -106,26 +111,30 @@ function SideNavbar() {
                   </h3>
                 </div>
               ) : null}
-              <div
-                onClick={quiznavigate}
-                className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
-              >
-                <MdQuiz className="text-2xl text-blue-600 group-hover:text-white " />
-                <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
-                <Link href={session.user.role === "company" ? "/create_quizz" : "/quizz"}>
-                    {session.user.role === "company" ? "Create quizz" : "Quizz"}
-                  </Link>
-                </h3>
-              </div>
-              <div
-                onClick={offers}
-                className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
-              >
-                <BiBriefcase className="text-2xl text-blue-600 group-hover:text-white " />
-                <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
-                  Offers
-                </h3>
-              </div>
+ <div
+  onClick={quiznavigate}
+  className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
+>
+  <MdQuiz className="text-2xl text-blue-600 group-hover:text-white " />
+  <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
+    <Link href={session.user.role === "company" ? "/create_quizz" : "/quizz"}>
+        {session.user.role === "company" ? "Create quizz" : "Quizz"}
+    </Link>
+  </h3>
+</div>
+
+              {session && session.user.role !== "company" && (
+  <div
+    onClick={offers}
+    className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
+  >
+    <BiBriefcase className="text-2xl text-blue-600 group-hover:text-white " />
+    <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
+      Offers
+    </h3>
+  </div>
+)}
+
            
             </div>
             {/* setting  */}
@@ -198,16 +207,19 @@ function SideNavbar() {
                 Quiz
               </h3>
             </div>
-            <div
-              onClick={offers}
-              className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
-            >
-              <BiBriefcase className="text-2xl text-blue-600 group-hover:text-white " />
-              <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
-                Offers
-              </h3>
-            </div>
-          
+            {session && session.user.role !== "company" && (
+  <div
+    onClick={offers}
+    className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto"
+  >
+    <BiBriefcase className="text-2xl text-blue-600 group-hover:text-white " />
+    <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">
+      Offers
+    </h3>
+  </div>
+)}
+
+
             <div className="flex  mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto">
               <MdOutlineSettings className="text-2xl text-blue-600 group-hover:text-white " />
               <h3 className="text-base text-gray-800 group-hover:text-white font-semibold ">

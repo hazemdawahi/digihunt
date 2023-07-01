@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import SideNavbar from '../components/SideNavbar';
 import { getSession } from 'next-auth/react';
+import Swal from 'sweetalert2';
 
 const CreateQuizz = ({ companyId }) => {
   const [quizTitle, setQuizTitle] = useState(''); 
@@ -36,8 +37,21 @@ const CreateQuizz = ({ companyId }) => {
   
       const data = await response.json();
       console.log(data);
+  
+      // Show success message
+      Swal.fire(
+        'Quiz Created!',
+        'Your quiz has been successfully created.',
+        'success'
+      );
     } catch (error) {
       console.error(error);
+      // Show error message
+      Swal.fire(
+        'Error!',
+        'An error occurred while creating your quiz.',
+        'error'
+      );
     }
   };
   
