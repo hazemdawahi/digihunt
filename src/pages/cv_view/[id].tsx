@@ -183,7 +183,7 @@ function CVview({resume}) {
 export default CVview;
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const userId = context.params.id
-    const res = await fetch(`http://localhost:3000/api/auth/getcv/?id=${userId}`)
+    const res = await fetch(`http://localhost:3000/api/auth/getcv/?userId=${userId}`)
   
     // If the API route returns a 404 (Not Found), redirect to a 404 page
     if (res.status === 404) {

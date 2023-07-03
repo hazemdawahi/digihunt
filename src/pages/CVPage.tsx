@@ -60,29 +60,34 @@ function CVPage() {
         slider_4: 'No slider_4 information',
     };
 
-
-  useEffect(() => {
-    async function fetchResumeData() {
-      try {
-        const userId = session.user.id; // replace with the actual user ID
-        console.log("userId",userId)
-        const response = await fetch(`http://localhost:3000/api/auth/getcv?userId=${userId}`);
-        const data = await response.json();
-  console.log(data)
-        if (!data || Object.keys(data).length === 0) {
+    useEffect(() => {
+      async function fetchResumeData() {
+        try {
+          const userId = session.user.id; // replace with the actual user ID
+          console.log("userId",userId)
+          const response = await fetch(`http://localhost:3000/api/auth/getcv?userId=${userId}`);
+          const data = await response.json();
+          console.log(data)
+  
+          // Check if the response data contains an error key
+          if (data.error) {
+            console.error("An error occurred while fetching the resume data:", data.error);
+            setResumeData(defaultCV);
+          } else if (!data || Object.keys(data).length === 0) {
+            setResumeData(defaultCV);
+          } else {
+            setResumeData(data);
+          }
+    
+        } catch (error) {
+          console.error("An error occurred while fetching the resume data:", error);
           setResumeData(defaultCV);
-        } else {
-          setResumeData(data);
         }
-  
-      } catch (error) {
-        console.error("An error occurred while fetching the resume data:", error);
-        setResumeData(defaultCV);
       }
-    }
+    
+      fetchResumeData();
+    }, []);
   
-    fetchResumeData();
-  }, []);
   
   if (!resumeData) {
     return <div>Loading...</div>;
@@ -215,7 +220,7 @@ function CVPage() {
           <div className={styles.leftsection}>
 
             <div className={styles.profile}>
-              <img src={session.user.image} className={styles.profileimg}   />
+              <img src={session.user.image} className={styles.profileimg}    />
               <div className={styles.bluebox}></div>
             </div>
             <h2 className={styles.name}>{session.user.firstname}

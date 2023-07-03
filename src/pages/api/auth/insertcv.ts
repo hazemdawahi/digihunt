@@ -102,7 +102,7 @@ export default async function handler(
         skill_4,
         slider_4,
       }: ResumeData = req.body;
-
+console.log(req.body)
       const existingUser = await prisma.users.findUnique({
         where: { id: user },
         include: { resume: true }, // Include 'resume' relation
@@ -162,6 +162,9 @@ export default async function handler(
       } else if (existingUser) {
         const newResume = await prisma.resume.create({
           data: {
+            image,
+            firstname,
+            lastname,
             job,
             country,
             phone,
