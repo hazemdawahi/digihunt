@@ -577,6 +577,17 @@ model Users {
   applications     Application[]
   resume           Resume?  
 }
+model Admins {
+  id               Int     @id @default(autoincrement())
+  firstname        String
+  lastname         String
+  email            String  @unique
+  password         String
+  role             String  @default("admin")
+  isVerified       Boolean @default(false)
+  verificationCode String?
+  image            String
+}
 
 model Job {
   id            String   @id @default(uuid())

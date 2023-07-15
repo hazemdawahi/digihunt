@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import SideNavbar from '../components/SideNavbar';
 import { getSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
+import { useSession } from 'next-auth/react';
+import SideNavbar_admin from '../components/SideNavbar_admin';
 
 const CreateQuizz = ({ companyId }) => {
+  const { data: session } = useSession(); // Add this line
+
   const [quizTitle, setQuizTitle] = useState(''); 
   const [quizType, setQuizType] = useState('');  
   const [timeInMins, setTimeInMins] = useState(''); // State for timer in minutes
@@ -111,7 +115,8 @@ const CreateQuizz = ({ companyId }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
-      <SideNavbar />
+          {session.user.role === 'admin' ? <SideNavbar_admin /> : <SideNavbar />}
+
       <header className="bg-white py-2 px-4 flex justify-end">
         <button onClick={handleQuestionAdd} className="bg-blue-500 text-white px-4 py-2 rounded">
           Add question
@@ -263,14 +268,16 @@ export async function getServerSideProps({ req }) {
       },
     };
   }
-  if (session.user.role === 'admin') {
+  // Check if the user's role is 'admin' or 'company'
+  if (!(session.user.role === 'admin' || session.user.role === 'company')) {
     return {
       redirect: {
-        destination: '/admin_user_pages',
+        destination: '/', // Redirect to home page or any other page
         permanent: false,
       },
     };
   }
+
   return {
     props: {
       session,

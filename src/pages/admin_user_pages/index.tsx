@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { getSession, useSession ,signOut} from "next-auth/react"
 import SideNavbar from '../../components/SideNavbar'
+import SideNavbar_admin from '../../components/SideNavbar_admin'
 
 export default function Home() {
 
@@ -29,7 +30,7 @@ export default function Home() {
 function User({ session }){
 
   return(
-<div><SideNavbar/>
+<div><SideNavbar_admin/>
 
     <main className="container mx-auto text-center py-20 ">
 

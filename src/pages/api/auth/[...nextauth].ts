@@ -58,48 +58,61 @@ export default NextAuth({
     CredentialsProvider({
       name: "Credentials",
       async authorize(credentials): Promise<UserWithVerificationCode> {
-         let user
-      user  = await prisma.users.findFirst({
-          where: { email: credentials.email } as any,
-        });
-      if (!user)
-      {
-         user = await prisma.companies.findFirst({
+        let user;
+
+        // Check users table
+        user = await prisma.users.findFirst({
           where: { email: credentials.email } as any,
         });
 
-      }
+        // Check companies table
+        if (!user) {
+          user = await prisma.companies.findFirst({
+            where: { email: credentials.email } as any,
+          });
+        }
+
+        // Check admins table
+        if (!user) {
+          user = await prisma.admins.findFirst({
+            where: { email: credentials.email } as any,
+          });
+        }
+
         if (!user) {
           throw new Error('Invalid email or password');
         }
 
-      
         // Compare password
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
       
         if (!isPasswordValid) {
           throw new Error('Invalid email or password');
         }
-        // Check if user is verified
     
         // Generate verification code if it doesn't exist in the user object
-          // Check if user is verified
-          if (!user.verificationCode) {
-            user = await sendVerificationCode(user);
-            // Update user object with verification code in the database
-            if (user.hasOwnProperty('firstname')) {
-              await prisma.users.update({
-                where: { id: user.id },
-                data: { verificationCode: user.verificationCode }
-              });
-            } else if (user.hasOwnProperty('companyName')) {
-              await prisma.companies.update({
-                where: { id: user.id },
-                data: { verificationCode: user.verificationCode }
-              });
-            }
+        if (!user.verificationCode) {
+          user = await sendVerificationCode(user);
+
+          // Update user object with verification code in the database
+          if (user.hasOwnProperty('firstname')) {
+            await prisma.users.update({
+              where: { id: user.id },
+              data: { verificationCode: user.verificationCode }
+            });
+          } else if (user.hasOwnProperty('companyName')) {
+            await prisma.companies.update({
+              where: { id: user.id },
+              data: { verificationCode: user.verificationCode }
+            });
+          } else if (user.hasOwnProperty('role') && user.role === 'admin') {
+            await prisma.admins.update({
+              where: { id: user.id },
+              data: { verificationCode: user.verificationCode }
+            });
           }
-      
+        }
+    
         // Return user object with verification code
         const userWithVerificationCode = {
           ...user,
@@ -108,7 +121,6 @@ export default NextAuth({
 
         return userWithVerificationCode;
       }
-      
     })
   ],
   callbacks: {
