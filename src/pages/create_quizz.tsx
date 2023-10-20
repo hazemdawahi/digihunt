@@ -4,6 +4,7 @@ import { getSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 import { useSession } from 'next-auth/react';
 import SideNavbar_admin from '../components/SideNavbar_admin';
+import Modal from 'react-modal';
 
 const CreateQuizz = ({ companyId }) => {
   const { data: session } = useSession(); // Add this line
@@ -15,6 +16,15 @@ const CreateQuizz = ({ companyId }) => {
   const [questions, setQuestions] = useState([
     { id: 1, question: '', answers: [''], correctAnswer: '' },
   ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [quizTopic, setQuizTopic] = useState('');
+  const [numberOfQuestions, setNumberOfQuestions] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const handleQuizMe = async () => {
+    // Logic for the AI Quiz API call
+    // Close the modal and handle your logic as needed
+    setIsModalOpen(false);
+  };
 
   
   const handlePublish = async () => {
@@ -112,7 +122,8 @@ const CreateQuizz = ({ companyId }) => {
       return updatedQuestions;
     });
   };
-
+ 
+  
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
           {session.user.role === 'admin' ? <SideNavbar_admin /> : <SideNavbar />}
@@ -121,7 +132,48 @@ const CreateQuizz = ({ companyId }) => {
         <button onClick={handleQuestionAdd} className="bg-blue-500 text-white px-4 py-2 rounded">
           Add question
         </button>
+        <button onClick={() => setIsModalOpen(true)} className="bg-green-500 text-white px-4 py-2 rounded mr-2">
+  Generate Quiz
+</button>
+
       </header>
+      {isModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+      <h2 className="text-2xl mb-4">Generate Quiz</h2>
+
+      <div className="mb-4">
+        <label className="block mb-2">Topic:</label>
+        <input type="text" value={quizTopic} onChange={(e) => setQuizTopic(e.target.value)} className="w-full px-3 py-2 border rounded" />
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2">Number of Questions:</label>
+        <input type="number" value={numberOfQuestions} onChange={(e) => setNumberOfQuestions(e.target.value)} className="w-full px-3 py-2 border rounded" />
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2">Difficulty:</label>
+        <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full px-3 py-2 border rounded">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
+      <div className="flex justify-center">
+      <button onClick={handleGenerateQuiz} className="bg-blue-500 text-white px-4 py-2 rounded mr-2">
+  Quiz Me!
+</button>
+
+        <button onClick={() => setIsModalOpen(false)} className="bg-gray-300 text-black px-4 py-2 rounded">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       <main className="container mx-auto text-center pl-50 flex-grow">
         <div className="container mx-auto p-4">
           <h1 className="text-2xl font-bold mb-4">Create Quiz</h1>

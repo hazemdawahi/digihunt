@@ -183,7 +183,8 @@ export default function Offers({
 
 export async function getServerSideProps({ req }) {
   const session = await getSession({ req });
-  console.log("session",session)
+  console.log("session", session)
+  
   if (!session) {
     return {
       redirect: {
@@ -192,6 +193,7 @@ export async function getServerSideProps({ req }) {
       },
     };
   }
+  
   if (session.user.role === 'admin') {
     return {
       redirect: {
@@ -201,15 +203,25 @@ export async function getServerSideProps({ req }) {
     };
   }
 
+  // Fetch jobs from database
   const jobsRes = await fetch('http://localhost:3000/api/auth/fetch_jobs');
-  const jobsData = await jobsRes.json();
+  const jobsDataDB = await jobsRes.json();
+
+  // Fetch jobs from scraping
+  const jobsScrapRes = await fetch('http://localhost:3000/api/auth/fetch_jobs_scrapping');
+  const jobsDataScrap = await jobsScrapRes.json();
+console.log(jobsDataScrap)
+  // Combine jobs from both sources
+  const combinedJobs = [...jobsDataDB.jobs, ...jobsDataScrap.data];
+console.log(combinedJobs)
   // Fetch applications by the user
   const applicationsRes = await fetch(`http://localhost:3000/api/auth/fetch_application?userId=${session.user.id}`);
   const applicationsData = await applicationsRes.json();
-console.log(applicationsData)
+  console.log(applicationsData)
 
-const appliedJobIds = applicationsData.map(application => application.jobId);
-  const jobs = jobsData.jobs.filter(job => !appliedJobIds.includes(job.id));
+  const appliedJobIds = applicationsData.map(application => application.jobId);
+  const jobs = combinedJobs.filter(job => !appliedJobIds.includes(job.id));
+
   return {
     props: {
       session,

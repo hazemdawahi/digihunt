@@ -768,3 +768,29 @@ model QuizHistory {
   remainingTime    String
   images           Json
 }
+model Job_scrapping {
+  id          Int      @id @default(autoincrement())
+  jobTitle    String
+  salaryType  String   @default("Unknown")
+  isRemote    Boolean  @default(false)
+  isFullTime  Boolean
+  isInternship Boolean @default(false)
+  requirements String @db.Text
+  description  String @db.Text
+  expiryDate  DateTime?
+  postDate    DateTime @default(now())
+  companyId   Int
+  location    String
+  experience  String   @default("Unknown Experience")
+  education   String   @default("Unknown Education")
+  salary      Float    @default(0)
+  company     Company_scrapping  @relation(fields: [companyId], references: [id])
+  url         String
+}
+
+model Company_scrapping {
+  id    Int             @id @default(autoincrement())
+  name  String
+  image String
+  jobs  Job_scrapping[]
+}
