@@ -19,7 +19,7 @@ const CreateQuizz = ({ companyId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quizTopic, setQuizTopic] = useState('');
   const [numberOfQuestions, setNumberOfQuestions] = useState('');
-  const [difficulty, setDifficulty] = useState('');
+  const [difficulty, setDifficulty] = useState('easy');
   const handleQuizMe = async () => {
     // Logic for the AI Quiz API call
     // Close the modal and handle your logic as needed
@@ -66,6 +66,51 @@ const CreateQuizz = ({ companyId }) => {
         'An error occurred while creating your quiz.',
         'error'
       );
+    }
+  };
+  const handleGenerateQuiz = async () => {
+    console.log("quizTopic,numberOfQuestions,difficulty", quizTopic,numberOfQuestions,difficulty)
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/ai_quizz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic: quizTopic,
+          numberOfQuestions: numberOfQuestions,
+          difficulty: difficulty
+        })
+      });
+      console.log(response);
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log(data);
+  
+      // Update state based on received data
+      setQuizTitle(data.quizName);
+      setQuizType(data.type);
+      setTimeInMins(data.estimatedTime.split(' ')[0]); // assuming format "xx minutes"
+      setDifficulty(data.difficulty);
+  
+      // Map the received questions to match the format of the state
+      const formattedQuestions = data.questions.map((q, index) => ({
+        id: index + 1,
+        question: q.question,
+        answers: q.options,
+        correctAnswer: q.correctAnswer
+      }));
+      setQuestions(formattedQuestions);
+      
+      setIsModalOpen(false);
+  
+    } catch (error) {
+      console.error(error);
+      // Handle the error or show an error message here
     }
   };
   
@@ -129,12 +174,13 @@ const CreateQuizz = ({ companyId }) => {
           {session.user.role === 'admin' ? <SideNavbar_admin /> : <SideNavbar />}
 
       <header className="bg-white py-2 px-4 flex justify-end">
-        <button onClick={handleQuestionAdd} className="bg-blue-500 text-white px-4 py-2 rounded">
-          Add question
-        </button>
-        <button onClick={() => setIsModalOpen(true)} className="bg-green-500 text-white px-4 py-2 rounded mr-2">
-  Generate Quiz
+      <button onClick={handleQuestionAdd} className="bg-blue-500 text-white px-4 py-2 rounded mr-4">
+    Add question
 </button>
+<button onClick={() => setIsModalOpen(true)} className="bg-green-500 text-white px-4 py-2 rounded">
+    Generate Quiz
+</button>
+
 
       </header>
       {isModalOpen && (
@@ -155,10 +201,11 @@ const CreateQuizz = ({ companyId }) => {
       <div className="mb-4">
         <label className="block mb-2">Difficulty:</label>
         <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full px-3 py-2 border rounded">
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
+  <option value="easy">Easy</option>
+  <option value="medium">Medium</option>
+  <option value="hard">Hard</option>
+</select>
+
       </div>
 
       <div className="flex justify-center">

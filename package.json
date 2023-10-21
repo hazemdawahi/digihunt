@@ -46,6 +46,7 @@
     "openai": "^4.12.4",
     "path": "^0.12.7",
     "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
     "rc-slider": "^10.2.1",
     "react": "18.2.0",
     "react-chartjs-2": "^5.2.0",

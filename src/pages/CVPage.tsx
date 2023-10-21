@@ -15,7 +15,11 @@ function CVPage() {
   console.log(session)
 
   const [resumeData, setResumeData] = useState(null);
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+ };
+ 
       const defaultCV = {
         id: 'No id information',
         job: 'No job information',
@@ -373,6 +377,14 @@ function CVPage() {
 
 
          <center> <Button shadow color="primary" auto  onClick={getFormValues}>Save</Button></center>
+         <div>
+   <input 
+      type="file" 
+      accept=".pdf" 
+      onChange={handleFileChange}
+   />
+   {selectedFile && <p>Selected file: {selectedFile.name}</p>}
+</div>
 
 
         </div>
