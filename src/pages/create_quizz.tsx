@@ -16,6 +16,8 @@ const CreateQuizz = ({ companyId }) => {
   const [questions, setQuestions] = useState([
     { id: 1, question: '', answers: [''], correctAnswer: '' },
   ]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quizTopic, setQuizTopic] = useState('');
   const [numberOfQuestions, setNumberOfQuestions] = useState('');
@@ -70,6 +72,8 @@ const CreateQuizz = ({ companyId }) => {
   };
   const handleGenerateQuiz = async () => {
     console.log("quizTopic,numberOfQuestions,difficulty", quizTopic,numberOfQuestions,difficulty)
+    setIsLoading(true);
+
     try {
       const response = await fetch('http://localhost:3000/api/auth/ai_quizz', {
         method: 'POST',
@@ -83,6 +87,7 @@ const CreateQuizz = ({ companyId }) => {
         })
       });
       console.log(response);
+      
   
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -90,6 +95,8 @@ const CreateQuizz = ({ companyId }) => {
   
       const data = await response.json();
       console.log(data);
+      setIsLoading(false);
+
   
       // Update state based on received data
       setQuizTitle(data.quizName);
@@ -209,9 +216,15 @@ const CreateQuizz = ({ companyId }) => {
       </div>
 
       <div className="flex justify-center">
-      <button onClick={handleGenerateQuiz} className="bg-blue-500 text-white px-4 py-2 rounded mr-2">
-  Quiz Me!
+      <button onClick={handleGenerateQuiz} className="bg-blue-500 text-white px-4 py-2 rounded mr-2 flex items-center">
+  {isLoading ? (
+    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  ) : 'Quiz Me!'}
 </button>
+
 
         <button onClick={() => setIsModalOpen(false)} className="bg-gray-300 text-black px-4 py-2 rounded">
           Cancel

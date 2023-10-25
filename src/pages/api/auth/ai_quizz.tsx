@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-    apiKey: "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"
+    apiKey: "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"
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -43,12 +43,12 @@
 .fname {
     background-color: transparent;
     border: none;
-    width:150px
+    width:200px
   }
   .company_loc {
     background-color: transparent;
     border: none;
-    width: 80px;
+    width: 100px;
     font-size: 12px;
 	color: var(--lightgray);
     
@@ -56,7 +56,7 @@
   .work {
     background-color: transparent;
     border: none;
-    width: 100px;
+    width: 220px;
     font-size: 14px;
 	font-weight: 600;
     
@@ -64,7 +64,7 @@
   .date {
     background-color: transparent;
     border: none;
-    width: 34px;
+    width: 100px;
     font-size: 14px;
 	font-weight: 600;
     
@@ -80,7 +80,7 @@
   {
     background-color: transparent;
     border: none;
-    width: 40px;
+    width: 100px;
     margin-top: 10px;
 	margin-bottom: 10px;
   }
@@ -298,4 +298,35 @@
 	margin-top: 25px;
     width: 45px;
     margin-right: 45px;
+}
+/* Same button styling for both buttons */
+.button_style {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: rgb(91, 168, 246);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button_style:hover {
+    background-color: rgb(91, 168, 246);
+}
+
+/* Remove the visible part of the file input */
+.upload_btn_wrapper input[type="file"] {
+    display: none;
+}
+
+/* Push both buttons to the right and control the spacing between them */
+.buttons_row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.upload_btn_wrapper {
+    display: inline-block; /* This makes the div fit its content */
 }

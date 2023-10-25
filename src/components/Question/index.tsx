@@ -3,8 +3,10 @@ import { FaArrowLeft } from "react-icons/fa";
 import Answers from "./Answers";
 import NavigationButton from "./NavigationButton";
 import Webcam from "react-webcam";
+import Swal from 'sweetalert2';
 
-export default function Question({ questions, hideExercise, finishTest }) {
+export default function Question({ questions, hideExercise, finishTest,userId }) {
+    console.log("userid",userId)
     const initialState = {
         currentQuestion: 0,
         answers: [],
@@ -27,14 +29,36 @@ export default function Question({ questions, hideExercise, finishTest }) {
 
     useEffect(() => {
         console.log(questions)
-        imageCaptureInterval = setInterval(() => {
+        imageCaptureInterval = setInterval(async () => {
             const imageSrc = webcamRef.current.getScreenshot();
             capturedImages.current.push(imageSrc);
-            console.log('Captured Image:', imageSrc); // Log the captured image
-        }, 5000); // Capture image every second
+        
+            // Compare the image with user profile
+            const faceMatchResponse = await fetch('http://localhost:3000/api/auth/compare', {
+                method: 'POST',
+                body: JSON.stringify({
+                    userId: userId,
+                    videoFeedImage: imageSrc.split(',')[1] // Remove the Data URL prefix
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const faceMatchResult = await faceMatchResponse.json();
+            if (!faceMatchResult.match) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'User doesnt match or fraud detected!'
+                }).then(() => {
+                    hideExercise(); // This will redirect back or execute whatever hideExercise does
+                });
+            }
+        }, 5000) // Capture and compare image every 5 seconds
     
         return () => clearInterval(imageCaptureInterval);
     }, []);
+    
     
     useEffect(() => {
     const timer = setInterval(() => {

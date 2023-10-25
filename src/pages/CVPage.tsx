@@ -16,10 +16,96 @@ function CVPage() {
 
   const [resumeData, setResumeData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
- };
- 
+  const [uploading, setUploading] = useState(false);
+const [uploadSuccess, setUploadSuccess] = useState(false);
+const [uploadError, setUploadError] = useState(null);
+const [hasUploadedData, setHasUploadedData] = useState(false);
+useEffect(() => {
+  console.log("resumeData", resumeData);
+}, [resumeData]);
+
+const handleFileChange = async (e) => {
+  setSelectedFile(e.target.files[0]);
+
+  const formData = new FormData();
+  formData.append('file', e.target.files[0]);
+
+  setUploading(true);
+  setUploadError(null);
+
+  try {
+      const uploadResponse = await fetch('http://localhost:3000/api/auth/upload_pdf', {
+          method: 'POST',
+          body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+          const responseBody = await uploadResponse.text();
+          console.error('Server responded with:', uploadResponse.status, responseBody);
+          throw new Error(`Server error: ${uploadResponse.status}`);
+      }
+
+      const uploadData = await uploadResponse.json();
+      console.log('File uploaded and can be accessed at:', uploadData.filePath);
+      setUploadSuccess(true);
+
+      // Now that we have the URL of the uploaded file, we can use it to fetch the extracted resume data
+      const extractionResponse = await fetch(`http://localhost:3000/api/auth/parse_pdf`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              pdfUrl: uploadData.filePath,
+          }),
+      });
+
+      const extractedData = await extractionResponse.json();
+      console.log("extractedData",extractedData)
+      setResumeData({
+        ...defaultCV,
+        ...extractedData
+      });
+      setHasUploadedData(true);
+      
+      console.log("resumeData",resumeData)
+  } catch (error) {
+      console.error('There was a problem:', error);
+      setUploadError(error.message);
+  } finally {
+      setUploading(false);
+  }
+};
+function Spinner() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column', // To arrange spinner and text vertically
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh'
+    }}>
+      <div style={{
+        border: '16px solid #f3f3f3',
+        borderRadius: '50%',
+        borderTop: '16px solid #3498db',
+        width: '120px',
+        height: '120px',
+        animation: 'spin 2s linear infinite',
+        marginBottom: '20px'  // A little space between the spinner and the text
+      }}></div>
+      <div>Processing your PDF...</div>
+
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
       const defaultCV = {
         id: 'No id information',
         job: 'No job information',
@@ -65,7 +151,10 @@ function CVPage() {
     };
 
     useEffect(() => {
+      if (hasUploadedData) return;
+
       async function fetchResumeData() {
+        console.log("hi")
         try {
           const userId = session.user.id; // replace with the actual user ID
           console.log("userId",userId)
@@ -90,12 +179,16 @@ function CVPage() {
       }
     
       fetchResumeData();
-    }, []);
+    }, [hasUploadedData, session.user.id]);  // Add dependencies to useEffect
   
-  
-  if (!resumeData) {
-    return <div>Loading...</div>;
-  }
+    if (uploading) {
+      return <Spinner />;
+    }
+    
+    if (!resumeData) {
+      return <div>Loading...</div>;
+    }
+    
   
    const getFormValues = async () => {
     const user= session.user.id;
@@ -230,23 +323,23 @@ function CVPage() {
             <h2 className={styles.name}>{session.user.firstname}
              <br />
             <span>{session.user.lastname}</span></h2>
-            <p className={styles.np}><input className={styles.fname} type="text" id="job" name="job" defaultValue={resumeData.job} /></p>
+            <p className={styles.np}><input className={styles.fname} type="text" id="job" name="job" value={resumeData.job} /></p>
 
 
             <div className={styles.info}>
               <p className={styles.heading}>Info</p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/location.png" /></span>Country<span> <br /><input className={styles.fname} type="text" id="country" name="contry" defaultValue={resumeData.country}/></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/call.png" /></span>Phone<span> <br /><input className={styles.fname} type="text" id="phone" name="phone"defaultValue={resumeData.phone} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/mail.png" /></span>Email<span> <br /><input className={styles.fname} type="text" id="email" name="email"  defaultValue={resumeData.email}/></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/domain.png" /></span>Website<span> <br /><input className={styles.fname} type="text" id="website" name="website" defaultValue={resumeData.website} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/location.png" /></span>Country<span> <br /><input className={styles.fname} type="text" id="country" name="contry" value={resumeData.country}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/call.png" /></span>Phone<span> <br /><input className={styles.fname} type="text" id="phone" name="phone"value={resumeData.phone} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/mail.png" /></span>Email<span> <br /><input className={styles.fname} type="text" id="email" name="email"  value={resumeData.email}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/domain.png" /></span>Website<span> <br /><input className={styles.fname} type="text" id="website" name="website" value={resumeData.website} /></span></p>
             </div>
 
             <div className={styles.info}>
               <p className={styles.heading}>Social</p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/skype.png" /></span>Skype<span> <br /><input className={styles.fname} type="text" id="skype" name="skype" defaultValue={resumeData.skype} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/twitter.png" /></span>Twitter<span> <br /><input className={styles.fname} type="text" id="twitter" name="twitter" defaultValue={resumeData.twitter} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/linkedin.png" /></span>Linkdin<span> <br /><input className={styles.fname} type="text" id="linkedin" name="linkedin" defaultValue={resumeData.linkedin} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/facebook.png" /></span>Facebook<span> <br /><input className={styles.fname} type="text" id="facebook" name="facebook" defaultValue={resumeData.facebook}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/skype.png" /></span>Skype<span> <br /><input className={styles.fname} type="text" id="skype" name="skype" value={resumeData.skype} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/twitter.png" /></span>Twitter<span> <br /><input className={styles.fname} type="text" id="twitter" name="twitter" value={resumeData.twitter} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/linkedin.png" /></span>Linkdin<span> <br /><input className={styles.fname} type="text" id="linkedin" name="linkedin" value={resumeData.linkedin} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/facebook.png" /></span>Facebook<span> <br /><input className={styles.fname} type="text" id="facebook" name="facebook" value={resumeData.facebook}/></span></p>
             </div>
 
           </div>
@@ -256,7 +349,7 @@ function CVPage() {
               <img src="image/user.png" />
               <p className={styles.p2}>Profile</p>
             </div>
-            <textarea className={styles.textarea} id="profile" name="profile" rows={3} cols={40} defaultValue={resumeData.profile}/>
+            <textarea className={styles.textarea} id="profile" name="profile" rows={3} cols={40} value={resumeData.profile}/>
 
             <div className={styles.clearfix}></div>
             <br />
@@ -267,16 +360,16 @@ function CVPage() {
             <div className={styles.clearfix}></div>
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="first_date_start" name="first_date_start" defaultValue={resumeData.first_date_start} /> -           
-                 <input className={styles.date} type="text" id="first_date_end" name="first_date_end" defaultValue={resumeData.first_date_end} />      
+              <input className={styles.date} type="text" id="first_date_start" name="first_date_start" value={resumeData.first_date_start} /> -           
+                 <input className={styles.date} type="text" id="first_date_end" name="first_date_end" value={resumeData.first_date_end} />      
      
-                <input className={styles.company_loc} type="text" id="first_loc" name="first_loc" defaultValue={resumeData.first_loc} />      
+                <input className={styles.company_loc} type="text" id="first_loc" name="first_loc" value={resumeData.first_loc} />      
                         </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="first_company_work" name="first_company_work"defaultValue={resumeData.first_company_work} />      
-                <input className={styles.company_loc} type="text" id="first_company_name" name="first_company_name" defaultValue={resumeData.first_company_name} />      
-                <textarea className={styles.textarea} id="first_work" name="first_work" rows={3} cols={40} defaultValue={resumeData.first_work}>
+              <input className={styles.work} type="text" id="first_company_work" name="first_company_work"value={resumeData.first_company_work} />      
+                <input className={styles.company_loc} type="text" id="first_company_name" name="first_company_name" value={resumeData.first_company_name} />      
+                <textarea className={styles.textarea} id="first_work" name="first_work" rows={3} cols={40} value={resumeData.first_work}>
                 </textarea>
               </div>
               <div className={styles.clearfix}></div>
@@ -284,30 +377,30 @@ function CVPage() {
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="second_date_start" name="second_date_start"  defaultValue={resumeData.second_date_start}/> -           
-                 <input className={styles.date} type="text" id="second_date_end" name="second_date_end" defaultValue={resumeData.second_date_end} />            
-                         <input className={styles.company_loc} type="text" id="second_loc" name="second_loc" defaultValue={resumeData.second_loc}/>      
+              <input className={styles.date} type="text" id="second_date_start" name="second_date_start"  value={resumeData.second_date_start}/> -           
+                 <input className={styles.date} type="text" id="second_date_end" name="second_date_end" value={resumeData.second_date_end} />            
+                         <input className={styles.company_loc} type="text" id="second_loc" name="second_loc" value={resumeData.second_loc}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="second_company_work" name="second_company_work" defaultValue={resumeData.second_company_work}/>      
-                <input className={styles.company_loc} type="text" id="second_company_name" name="second_company_name" defaultValue={resumeData.second_company_name} />      
-                <textarea className={styles.textarea} id="second_work" name="second_work" rows={3} cols={40} defaultValue={resumeData.second_work}>
+              <input className={styles.work} type="text" id="second_company_work" name="second_company_work" value={resumeData.second_company_work}/>      
+                <input className={styles.company_loc} type="text" id="second_company_name" name="second_company_name" value={resumeData.second_company_name} />      
+                <textarea className={styles.textarea} id="second_work" name="second_work" rows={3} cols={40} value={resumeData.second_work}>
                 </textarea>              </div>
               <div className={styles.clearfix}></div>
             </div>
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="thrid_date_start" name="thrid_date_start"defaultValue={resumeData.third_date_start} /> -           
-                 <input className={styles.date} type="text" id="third_date_end" name="third_date_end" defaultValue={resumeData.third_date_end}/>    
-                               <input className={styles.company_loc} type="text" id="third_loc" name="third_loc"  defaultValue={resumeData.third_loc}/>      
+              <input className={styles.date} type="text" id="thrid_date_start" name="thrid_date_start"value={resumeData.third_date_start} /> -           
+                 <input className={styles.date} type="text" id="third_date_end" name="third_date_end" value={resumeData.third_date_end}/>    
+                               <input className={styles.company_loc} type="text" id="third_loc" name="third_loc"  value={resumeData.third_loc}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="third_company_work" name="third_company_work" defaultValue={resumeData.third_company_work} />      
-                <input className={styles.company_loc} type="text" id="third_company_name" name="third_company_name" defaultValue={resumeData.third_company_name}/>      
-                <textarea className={styles.textarea} id="third_work" name="third_work" rows={3} cols={40} defaultValue={resumeData.third_work}>
+              <input className={styles.work} type="text" id="third_company_work" name="third_company_work" value={resumeData.third_company_work} />      
+                <input className={styles.company_loc} type="text" id="third_company_name" name="third_company_name" value={resumeData.third_company_name}/>      
+                <textarea className={styles.textarea} id="third_work" name="third_work" rows={3} cols={40} value={resumeData.third_work}>
                 </textarea>                  </div>
               <div className={styles.clearfix}></div>
             </div>
@@ -321,27 +414,27 @@ function CVPage() {
             <div className={styles.clearfix}></div>
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="first_date_start_edu" name="first_date_start_edu" defaultValue={resumeData.first_date_start_edu} /> -           
-                 <input className={styles.date} type="text" id="first_date_end_edu" name="first_date_end_edu"defaultValue={resumeData.first_date_end_edu} />              
-                     <input className={styles.company_loc} type="text" id="first_edu_loc" name="first_edu_loc" defaultValue={resumeData.first_edu_loc}/>      
+              <input className={styles.date} type="text" id="first_date_start_edu" name="first_date_start_edu" value={resumeData.first_date_start_edu} /> -           
+                 <input className={styles.date} type="text" id="first_date_end_edu" name="first_date_end_edu"value={resumeData.first_date_end_edu} />              
+                     <input className={styles.company_loc} type="text" id="first_edu_loc" name="first_edu_loc" value={resumeData.first_edu_loc}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="first_edu" name="first_edu" defaultValue={resumeData.first_edu}  />      
-                <textarea className={styles.textarea} id="first_education" name="first_education" rows={3} cols={40} defaultValue={resumeData.first_education}>
+              <input className={styles.work} type="text" id="first_edu" name="first_edu" value={resumeData.first_edu}  />      
+                <textarea className={styles.textarea} id="first_education" name="first_education" rows={3} cols={40} value={resumeData.first_education}>
                 </textarea>                      </div>
               <div className={styles.clearfix}></div>
             </div>
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="second_date_start_edu" name="second_date_start_edu" defaultValue={resumeData.second_date_start_edu} /> -           
-                 <input className={styles.date} type="text" id="second_date_end_edu" name="second_date_end_edu" defaultValue={resumeData.second_date_end_edu}/>                  <input className={styles.company_loc} type="text" id="second_edu" name="second_edu" />      
+              <input className={styles.date} type="text" id="second_date_start_edu" name="second_date_start_edu" value={resumeData.second_date_start_edu} /> -           
+                 <input className={styles.date} type="text" id="second_date_end_edu" name="second_date_end_edu" value={resumeData.second_date_end_edu}/>                  <input className={styles.company_loc} type="text" id="second_edu" name="second_edu" />      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="second_edu" name="second_edu" defaultValue={resumeData.second_edu}/>      
-                <textarea className={styles.textarea} id="second_education" name="second_education" rows={3} cols={40} defaultValue={resumeData.second_education}>
+              <input className={styles.work} type="text" id="second_edu" name="second_edu" value={resumeData.second_edu}/>      
+                <textarea className={styles.textarea} id="second_education" name="second_education" rows={3} cols={40} value={resumeData.second_education}>
                   Lorem Ipsum is simply dummy text of the printing and typesetting industry
                 </textarea>                      </div>
               <div className={styles.clearfix}></div>
@@ -354,17 +447,17 @@ function CVPage() {
             </div>
             <div className={styles.clearfix}></div>
             <div className={styles.sbox}>
-            <input className={styles.skills} type="text" id="skill_1" name="skill_1" defaultValue={resumeData.skill_1} />      
-              <input className={styles.slider} type="range" id="slider_1" name="slider_1" min="0" max="100" step="1"defaultValue={resumeData.slider_1} />
-              <input className={styles.skills} type="text" id="skill_2" name="skill_2" defaultValue={resumeData.skill_2} />      
-              <input className={styles.slider} type="range" id="slider_2" name="slider_2" min="0" max="100" step="1"defaultValue={resumeData.slider_2} />
+            <input className={styles.skills} type="text" id="skill_1" name="skill_1" value={resumeData.skill_1} />      
+              <input className={styles.slider} type="range" id="slider_1" name="slider_1" min="0" max="100" step="1"value={resumeData.slider_1} />
+              <input className={styles.skills} type="text" id="skill_2" name="skill_2" value={resumeData.skill_2} />      
+              <input className={styles.slider} type="range" id="slider_2" name="slider_2" min="0" max="100" step="1"value={resumeData.slider_2} />
 
             </div>
             <div className={styles.sbox}>
-            <input className={styles.skills} type="text" id="skill_3" name="skill_3" defaultValue={resumeData.skill_3} />      
-<input className={styles.slider} type="range" id="slider_3" name="slider_3" min="0" max="100" step="1" defaultValue={resumeData.slider_3} />
-<input className={styles.skills} type="text" id="skill_4" name="skill_4" defaultValue={resumeData.skill_4} />      
-              <input className={styles.slider} type="range" id="slider_4" name="slider_4" min="0" max="100" step="1" defaultValue={resumeData.slider_4} />
+            <input className={styles.skills} type="text" id="skill_3" name="skill_3" value={resumeData.skill_3} />      
+<input className={styles.slider} type="range" id="slider_3" name="slider_3" min="0" max="100" step="1" value={resumeData.slider_3} />
+<input className={styles.skills} type="text" id="skill_4" name="skill_4" value={resumeData.skill_4} />      
+              <input className={styles.slider} type="range" id="slider_4" name="slider_4" min="0" max="100" step="1" value={resumeData.slider_4} />
             </div>
 
 
@@ -373,19 +466,14 @@ function CVPage() {
 
           </div>
 
-
-
-
-         <center> <Button shadow color="primary" auto  onClick={getFormValues}>Save</Button></center>
-         <div>
-   <input 
-      type="file" 
-      accept=".pdf" 
-      onChange={handleFileChange}
-   />
-   {selectedFile && <p>Selected file: {selectedFile.name}</p>}
+      
+<div className={styles.buttons_row}>
+    <div className={styles.upload_btn_wrapper}>
+        <label htmlFor="fileUpload" className={styles.button_style}>Upload</label>
+        <input type="file" id="fileUpload" onChange={handleFileChange} />
+    </div>
+    <div onClick={getFormValues} className={styles.button_style}>Save</div>
 </div>
-
 
         </div>
       </div>

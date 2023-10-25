@@ -16,6 +16,7 @@ import { getSession, useSession } from 'next-auth/react';
 import styles from '../styles/quizz.module.css';
 import Swal from "sweetalert2";
 
+
 export async function getServerSideProps(context) {
   const session = await getSession(context);
 
@@ -69,6 +70,7 @@ return {
   }
 };
 }
+
 function letterToIndex(letter, returnLetter = false) {
   if (!letter) return -1;
   if (returnLetter) return letter;
@@ -180,7 +182,6 @@ function QuizResultsPDF({ questions, score,answers, formattedTimeSpent, tabSwitc
 
 function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime }) {
   const { data: session } = useSession();
-
   
   
   const renderButton = () => {
@@ -221,6 +222,7 @@ function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tab
   export default function Home ({ exercises }) {
     console.log("exercises",exercises)
      const { data: session } = useSession();
+const userId = session?.user?.id || null;
     const initialState = {
       isExerciseShown: false,
       exerciseId: null,
@@ -371,9 +373,11 @@ function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tab
                 </div>
               ) : (
                 <Question
+                userId={userId}
                   questions={questions}
                   hideExercise={hideExercise}
                   finishTest={finishTest}
+
                   
                 />
               )}

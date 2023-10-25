@@ -150,6 +150,8 @@ page.drawText("Questions & Answers", {
 
 offsetY = offsetY + 140;
 let questionNumber = 1;
+console.log("req.body.quiz.questions",req.body.quiz.questions);
+
 for (const [index, question] of req.body.questions.entries()) {
   const questionText = `Q${index + 1}: ${question.question}`;
   page.drawText(questionText, {

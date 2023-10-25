@@ -12,7 +12,20 @@ export default function Register() {
   const [location, setLocation] = useState(null);
   const [show, setShow] = useState({ password: false, cpassword: false });
   const [selectedOption, setSelectedOption] = useState("employee");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
 
+    reader.onloadend = () => {
+      setUploadedImage(reader.result);
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
@@ -57,16 +70,31 @@ export default function Register() {
       companyname: '',
       industry: ''
     },
-    onSubmit: (values) => {
-      console.log(selectedOption);
+    onSubmit: async (values) => {
+      let imageUrl = null;
+    
+      if (selectedOption === "employee" && uploadedImage) {
+        imageUrl = await handleImageUpload();
+      }
+    
+      const payload = {
+        ...values,
+        role: selectedOption,
+        location: location?.country
+      };
+    
+      if (imageUrl) {
+        payload.profileImageUrl = imageUrl;
+      }
+    
       const options = {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, role: selectedOption, location: location?.country })
+        body: JSON.stringify(payload)
       };
-
+    
       const url = selectedOption === 'company' ? '/api/auth/register_company' : '/api/auth/register';
-
+    
       fetch(url, options)
         .then(res => res.json())
         .then((data) => {
@@ -75,6 +103,24 @@ export default function Register() {
         });
     }
   });
+  const handleImageUpload = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/uploadToCloudinary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: uploadedImage }),
+      });
+  
+      const data = await response.json();  
+          console.log(data.url)
+
+      return data.url;
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      return null;
+    }
+  };
+  
 
   return (
     <Layout children={undefined}>
@@ -102,6 +148,23 @@ export default function Register() {
 
           {selectedOption === 'employee' && (
             <>
+             <div className="flex justify-center items-center my-4">
+            <label className="cursor-pointer relative">
+              <div className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                {uploadedImage ? (
+                  <img src={uploadedImage} className="w-full h-full object-cover" alt="Uploaded preview" />
+                ) : (
+                  <HiOutlineUser size={50} />
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </label>
+          </div>
               <div className={styles.input_group}>
                 <input
                   type="text"

@@ -17,27 +17,40 @@ export default async function handler(
     return;
   }
 
-  const { firstname,lastname, email, password: plainTextPassword, role,location } = req.body;
+  const { 
+    firstname, 
+    lastname, 
+    email, 
+    password: plainTextPassword, 
+    role, 
+    location, 
+    profileImageUrl 
+  } = req.body;
+
   const password = await bcrypt.hash(plainTextPassword, 10);
-console.log(email);
-const existingUser = await prisma.users.findFirst({
-  where: { email: email } as any,
-});
-const existingcompanies = await prisma.companies.findFirst({
-  where: { email: email } as any,
-});
-console.log(existingUser)
+
+  const existingUser = await prisma.users.findFirst({
+    where: { email: email } as any,
+  });
+
+  const existingcompanies = await prisma.companies.findFirst({
+    where: { email: email } as any,
+  });
+
   if (existingUser && existingcompanies) {
     res.status(409).json({ message: 'Email already taken' });
     return;
   }
-  const image ="https://api.dicebear.com/5.x/initials/png?seed="+firstname
+
+  const defaultImage = "https://api.dicebear.com/5.x/initials/png?seed=" + firstname;
+  const image = profileImageUrl || defaultImage;
+
   const user = await prisma.users.create({
     data: {
       firstname: firstname,
-      lastname:lastname,
-      image:image,
-      location:location,
+      lastname: lastname,
+      image: image,
+      location: location,
       email: email,
       password: password,
       role: role
