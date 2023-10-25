@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 
 AWS.config.update({
   region: 'us-east-2',
-  accessKeyId: 'AKIA5MBO65U6Q6MZT6NB',
-  secretAccessKey: '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',
+  accessKeyId: '',
+  secretAccessKey: '',
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
