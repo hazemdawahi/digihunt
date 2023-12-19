@@ -664,49 +664,50 @@ model Resume {
   id    Int    @id @default(autoincrement())
   user  Users  @relation(fields: [userId], references: [id])
   userId Int   @unique
-  image                 String?
-  firstname             String?
-  lastname              String?
-  job                   String?
-  country               String?
-  phone                 String?
-  email                 String?
-  website               String?
-  skype                 String?
-  twitter               String?
-  linkedin              String?
-  facebook              String?
-  profile               String?
-  first_date_start      String?
-  first_date_end        String?
-  first_loc             String?
-  first_company_work    String?
-  first_work            String?
-  second_date_start     String?
-  second_date_end       String?
-  second_company_work   String?
-  second_company_name   String?
-  second_work           String?
-  third_date_start      String?
-  third_date_end        String?
-  third_company_work    String?
-  third_company_name    String?
-  third_work            String?
-  first_date_start_edu  String?
-  first_date_end_edu    String?
-  first_edu             String?
-  first_education       String?
-  second_date_start_edu String?
-  second_date_end_edu   String?
-  second_edu            String?
-  skill_1               String?
-  slider_1              String?
-  skill_2               String?
-  slider_2              String?
-  skill_3               String?
-  slider_3              String?
-  skill_4               String?
-  slider_4              String?
+  image                 String @db.Text
+  firstname             String @db.Text
+  lastname              String @db.Text
+  job                   String @db.Text
+  country               String @db.Text
+  phone                 String @db.Text
+  email                 String @db.Text
+  website               String @db.Text
+  skype                 String @db.Text
+  twitter               String @db.Text
+  linkedin              String @db.Text
+  facebook              String @db.Text
+  profile               String @db.Text
+  expiryDate  DateTime?
+  first_date_start      String @db.Text
+  first_date_end        String @db.Text
+  first_loc             String @db.Text
+  first_company_work    String @db.Text
+  first_work            String @db.Text
+  second_date_start     String @db.Text
+  second_date_end       String @db.Text
+  second_company_work   String @db.Text
+  second_company_name   String @db.Text
+  second_work           String @db.Text
+  third_date_start      String @db.Text
+  third_date_end        String @db.Text
+  third_company_work    String @db.Text
+  third_company_name    String @db.Text
+  third_work            String @db.Text
+  first_date_start_edu  String @db.Text
+  first_date_end_edu    String @db.Text
+  first_edu             String @db.Text
+  first_education       String @db.Text
+  second_date_start_edu String @db.Text
+  second_date_end_edu   String @db.Text
+  second_edu           String @db.Text
+  skill_1               String @db.Text
+  slider_1              String @db.Text
+  skill_2               String @db.Text
+  slider_2              String @db.Text
+  skill_3               String @db.Text
+  slider_3              String @db.Text
+  skill_4               String @db.Text
+  slider_4              String @db.Text
 }
 
 model Quiz {

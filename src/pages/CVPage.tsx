@@ -283,6 +283,7 @@ function Spinner() {
 
   };
    try {
+    console.log('hi')
     const response = await fetch('http://localhost:3000/api/auth/insertcv', {
       method: 'POST',
       headers: {
@@ -292,6 +293,7 @@ function Spinner() {
     });
 
     const result = await response.json();
+    console.log('result:',result)
     Swal.fire(
       'Good job!',
       'You clicked the button!',
@@ -305,7 +307,10 @@ function Spinner() {
   }
 
   console.log("resume_data",resumeData)
-
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setResumeData(prevState => ({ ...prevState, [name]: value }));
+  };
   return (    
 
   <><SideNavbar /><div className={styles.myclass}>
@@ -320,26 +325,26 @@ function Spinner() {
               <img src={session.user.image} className={styles.profileimg}    />
               <div className={styles.bluebox}></div>
             </div>
-            <h2 className={styles.name}>{session.user.firstname}
+            <h2 className={styles.name}>{session.user.firstname} 
              <br />
             <span>{session.user.lastname}</span></h2>
-            <p className={styles.np}><input className={styles.fname} type="text" id="job" name="job" value={resumeData.job} /></p>
+            <p className={styles.np}><input className={styles.fname} type="text" id="job" name="job" value={resumeData.job} onChange={handleInputChange}/></p>
 
 
             <div className={styles.info}>
               <p className={styles.heading}>Info</p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/location.png" /></span>Country<span> <br /><input className={styles.fname} type="text" id="country" name="contry" value={resumeData.country}/></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/call.png" /></span>Phone<span> <br /><input className={styles.fname} type="text" id="phone" name="phone"value={resumeData.phone} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/mail.png" /></span>Email<span> <br /><input className={styles.fname} type="text" id="email" name="email"  value={resumeData.email}/></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/domain.png" /></span>Website<span> <br /><input className={styles.fname} type="text" id="website" name="website" value={resumeData.website} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/location.png" /></span>Country<span> <br /><input className={styles.fname} type="text" id="country" name="contry" value={resumeData.country} onChange={handleInputChange}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/call.png" /></span>Phone<span> <br /><input className={styles.fname} type="text" id="phone" name="phone"value={resumeData.phone} onChange={handleInputChange} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/mail.png" /></span>Email<span> <br /><input className={styles.fname} type="text" id="email" name="email"  value={resumeData.email} onChange={handleInputChange}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/domain.png" /></span>Website<span> <br /><input className={styles.fname} type="text" id="website" name="website" value={resumeData.website} onChange={handleInputChange}/></span></p>
             </div>
 
             <div className={styles.info}>
               <p className={styles.heading}>Social</p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/skype.png" /></span>Skype<span> <br /><input className={styles.fname} type="text" id="skype" name="skype" value={resumeData.skype} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/twitter.png" /></span>Twitter<span> <br /><input className={styles.fname} type="text" id="twitter" name="twitter" value={resumeData.twitter} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/linkedin.png" /></span>Linkdin<span> <br /><input className={styles.fname} type="text" id="linkedin" name="linkedin" value={resumeData.linkedin} /></span></p>
-              <p className={styles.p1}><span className={styles.span1}><img src="image/facebook.png" /></span>Facebook<span> <br /><input className={styles.fname} type="text" id="facebook" name="facebook" value={resumeData.facebook}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/skype.png" /></span>Skype<span> <br /><input className={styles.fname} type="text" id="skype" name="skype" value={resumeData.skype} onChange={handleInputChange}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/twitter.png" /></span>Twitter<span> <br /><input className={styles.fname} type="text" id="twitter" name="twitter" value={resumeData.twitter} onChange={handleInputChange} /></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/linkedin.png" /></span>Linkdin<span> <br /><input className={styles.fname} type="text" id="linkedin" name="linkedin" value={resumeData.linkedin}  onChange={handleInputChange}/></span></p>
+              <p className={styles.p1}><span className={styles.span1}><img src="image/facebook.png" /></span>Facebook<span> <br /><input className={styles.fname} type="text" id="facebook" name="facebook" value={resumeData.facebook} onChange={handleInputChange}/></span></p>
             </div>
 
           </div>
@@ -349,7 +354,7 @@ function Spinner() {
               <img src="image/user.png" />
               <p className={styles.p2}>Profile</p>
             </div>
-            <textarea className={styles.textarea} id="profile" name="profile" rows={3} cols={40} value={resumeData.profile}/>
+            <textarea className={styles.textarea} id="profile" name="profile" rows={3} cols={40} value={resumeData.profile} onChange={handleInputChange}/>
 
             <div className={styles.clearfix}></div>
             <br />
@@ -360,16 +365,16 @@ function Spinner() {
             <div className={styles.clearfix}></div>
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="first_date_start" name="first_date_start" value={resumeData.first_date_start} /> -           
-                 <input className={styles.date} type="text" id="first_date_end" name="first_date_end" value={resumeData.first_date_end} />      
+              <input className={styles.date} type="text" id="first_date_start" name="first_date_start" value={resumeData.first_date_start} onChange={handleInputChange} /> -           
+                 <input className={styles.date} type="text" id="first_date_end" name="first_date_end" value={resumeData.first_date_end} onChange={handleInputChange} />      
      
-                <input className={styles.company_loc} type="text" id="first_loc" name="first_loc" value={resumeData.first_loc} />      
+                <input className={styles.company_loc} type="text" id="first_loc" name="first_loc" value={resumeData.first_loc} onChange={handleInputChange} />      
                         </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="first_company_work" name="first_company_work"value={resumeData.first_company_work} />      
-                <input className={styles.company_loc} type="text" id="first_company_name" name="first_company_name" value={resumeData.first_company_name} />      
-                <textarea className={styles.textarea} id="first_work" name="first_work" rows={3} cols={40} value={resumeData.first_work}>
+              <input className={styles.work} type="text" id="first_company_work" name="first_company_work"value={resumeData.first_company_work} onChange={handleInputChange} />      
+                <input className={styles.company_loc} type="text" id="first_company_name" name="first_company_name" value={resumeData.first_company_name} onChange={handleInputChange} />      
+                <textarea className={styles.textarea} id="first_work" name="first_work" rows={3} cols={40} value={resumeData.first_work} onChange={handleInputChange}>
                 </textarea>
               </div>
               <div className={styles.clearfix}></div>
@@ -377,30 +382,30 @@ function Spinner() {
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="second_date_start" name="second_date_start"  value={resumeData.second_date_start}/> -           
-                 <input className={styles.date} type="text" id="second_date_end" name="second_date_end" value={resumeData.second_date_end} />            
-                         <input className={styles.company_loc} type="text" id="second_loc" name="second_loc" value={resumeData.second_loc}/>      
+              <input className={styles.date} type="text" id="second_date_start" name="second_date_start"  value={resumeData.second_date_start} onChange={handleInputChange}/> -           
+                 <input className={styles.date} type="text" id="second_date_end" name="second_date_end" value={resumeData.second_date_end} onChange={handleInputChange} />            
+                         <input className={styles.company_loc} type="text" id="second_loc" name="second_loc" value={resumeData.second_loc} onChange={handleInputChange}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="second_company_work" name="second_company_work" value={resumeData.second_company_work}/>      
-                <input className={styles.company_loc} type="text" id="second_company_name" name="second_company_name" value={resumeData.second_company_name} />      
-                <textarea className={styles.textarea} id="second_work" name="second_work" rows={3} cols={40} value={resumeData.second_work}>
+              <input className={styles.work} type="text" id="second_company_work" name="second_company_work" value={resumeData.second_company_work} onChange={handleInputChange}/>      
+                <input className={styles.company_loc} type="text" id="second_company_name" name="second_company_name" value={resumeData.second_company_name} onChange={handleInputChange} />      
+                <textarea className={styles.textarea} id="second_work" name="second_work" rows={3} cols={40} value={resumeData.second_work} onChange={handleInputChange}>
                 </textarea>              </div>
               <div className={styles.clearfix}></div>
             </div>
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="thrid_date_start" name="thrid_date_start"value={resumeData.third_date_start} /> -           
-                 <input className={styles.date} type="text" id="third_date_end" name="third_date_end" value={resumeData.third_date_end}/>    
-                               <input className={styles.company_loc} type="text" id="third_loc" name="third_loc"  value={resumeData.third_loc}/>      
+              <input className={styles.date} type="text" id="thrid_date_start" name="thrid_date_start"value={resumeData.third_date_start} onChange={handleInputChange} /> -           
+                 <input className={styles.date} type="text" id="third_date_end" name="third_date_end" value={resumeData.third_date_end} onChange={handleInputChange}/>    
+                               <input className={styles.company_loc} type="text" id="third_loc" name="third_loc"  value={resumeData.third_loc} onChange={handleInputChange}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="third_company_work" name="third_company_work" value={resumeData.third_company_work} />      
-                <input className={styles.company_loc} type="text" id="third_company_name" name="third_company_name" value={resumeData.third_company_name}/>      
-                <textarea className={styles.textarea} id="third_work" name="third_work" rows={3} cols={40} value={resumeData.third_work}>
+              <input className={styles.work} type="text" id="third_company_work" name="third_company_work" value={resumeData.third_company_work} onChange={handleInputChange}/>      
+                <input className={styles.company_loc} type="text" id="third_company_name" name="third_company_name" value={resumeData.third_company_name} onChange={handleInputChange}/>      
+                <textarea className={styles.textarea} id="third_work" name="third_work" rows={3} cols={40} value={resumeData.third_work} onChange={handleInputChange}>
                 </textarea>                  </div>
               <div className={styles.clearfix}></div>
             </div>
@@ -414,27 +419,28 @@ function Spinner() {
             <div className={styles.clearfix}></div>
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="first_date_start_edu" name="first_date_start_edu" value={resumeData.first_date_start_edu} /> -           
-                 <input className={styles.date} type="text" id="first_date_end_edu" name="first_date_end_edu"value={resumeData.first_date_end_edu} />              
-                     <input className={styles.company_loc} type="text" id="first_edu_loc" name="first_edu_loc" value={resumeData.first_edu_loc}/>      
+              <input className={styles.date} type="text" id="first_date_start_edu" name="first_date_start_edu" value={resumeData.first_date_start_edu} onChange={handleInputChange} /> -           
+                 <input className={styles.date} type="text" id="first_date_end_edu" name="first_date_end_edu"value={resumeData.first_date_end_edu} onChange={handleInputChange} />              
+                     <input className={styles.company_loc} type="text" id="first_edu_loc" name="first_edu_loc" value={resumeData.first_edu_loc} onChange={handleInputChange}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="first_edu" name="first_edu" value={resumeData.first_edu}  />      
-                <textarea className={styles.textarea} id="first_education" name="first_education" rows={3} cols={40} value={resumeData.first_education}>
+              <input className={styles.work} type="text" id="first_edu" name="first_edu" value={resumeData.first_edu} onChange={handleInputChange} />      
+                <textarea className={styles.textarea} id="first_education" name="first_education" rows={3} cols={40} value={resumeData.first_education} onChange={handleInputChange}>
                 </textarea>                      </div>
               <div className={styles.clearfix}></div>
             </div>
 
             <div className={styles.lrbox}>
               <div className={styles.left}>
-              <input className={styles.date} type="text" id="second_date_start_edu" name="second_date_start_edu" value={resumeData.second_date_start_edu} /> -           
-                 <input className={styles.date} type="text" id="second_date_end_edu" name="second_date_end_edu" value={resumeData.second_date_end_edu}/>                  <input className={styles.company_loc} type="text" id="second_edu" name="second_edu" />      
+              <input className={styles.date} type="text" id="second_date_start_edu" name="second_date_start_edu" value={resumeData.second_date_start_edu} onChange={handleInputChange}/> -           
+                 <input className={styles.date} type="text" id="second_date_end_edu" name="second_date_end_edu" value={resumeData.second_date_end_edu}onChange={handleInputChange}/>              
+                     <input className={styles.company_loc} type="text" id="second_edu" name="second_edu" onChange={handleInputChange}/>      
               </div>
 
               <div className={styles.right}>
-              <input className={styles.work} type="text" id="second_edu" name="second_edu" value={resumeData.second_edu}/>      
-                <textarea className={styles.textarea} id="second_education" name="second_education" rows={3} cols={40} value={resumeData.second_education}>
+              <input className={styles.work} type="text" id="second_edu" name="second_edu" value={resumeData.second_edu} onChange={handleInputChange}/>      
+                <textarea className={styles.textarea} id="second_education" name="second_education" rows={3} cols={40} value={resumeData.second_education} onChange={handleInputChange}>
                   Lorem Ipsum is simply dummy text of the printing and typesetting industry
                 </textarea>                      </div>
               <div className={styles.clearfix}></div>
@@ -447,17 +453,17 @@ function Spinner() {
             </div>
             <div className={styles.clearfix}></div>
             <div className={styles.sbox}>
-            <input className={styles.skills} type="text" id="skill_1" name="skill_1" value={resumeData.skill_1} />      
-              <input className={styles.slider} type="range" id="slider_1" name="slider_1" min="0" max="100" step="1"value={resumeData.slider_1} />
+            <input className={styles.skills} type="text" id="skill_1" name="skill_1" value={resumeData.skill_1} onChange={handleInputChange} />      
+              <input className={styles.slider} type="range" id="slider_1" name="slider_1" min="0" max="100" step="1"value={resumeData.slider_1} onChange={handleInputChange} />
               <input className={styles.skills} type="text" id="skill_2" name="skill_2" value={resumeData.skill_2} />      
-              <input className={styles.slider} type="range" id="slider_2" name="slider_2" min="0" max="100" step="1"value={resumeData.slider_2} />
+              <input className={styles.slider} type="range" id="slider_2" name="slider_2" min="0" max="100" step="1"value={resumeData.slider_2} onChange={handleInputChange}/>
 
             </div>
             <div className={styles.sbox}>
-            <input className={styles.skills} type="text" id="skill_3" name="skill_3" value={resumeData.skill_3} />      
-<input className={styles.slider} type="range" id="slider_3" name="slider_3" min="0" max="100" step="1" value={resumeData.slider_3} />
+            <input className={styles.skills} type="text" id="skill_3" name="skill_3" value={resumeData.skill_3} onChange={handleInputChange} />      
+<input className={styles.slider} type="range" id="slider_3" name="slider_3" min="0" max="100" step="1" value={resumeData.slider_3} onChange={handleInputChange}/>
 <input className={styles.skills} type="text" id="skill_4" name="skill_4" value={resumeData.skill_4} />      
-              <input className={styles.slider} type="range" id="slider_4" name="slider_4" min="0" max="100" step="1" value={resumeData.slider_4} />
+              <input className={styles.slider} type="range" id="slider_4" name="slider_4" min="0" max="100" step="1" value={resumeData.slider_4}  onChange={handleInputChange}/>
             </div>
 
 

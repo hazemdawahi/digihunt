@@ -6,15 +6,17 @@ const prisma = new PrismaClient();
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-
+      // Fetching the quiz history
       const quizHistories = await prisma.quizHistory.findMany({
         select: {
           quizId: true,
         },
       });
 
+      // Extracting quiz IDs from history
       const quizIds = quizHistories.map((history) => history.quizId);
 
+      // Fetching quizzes not taken, based on history
       const quizzes = await prisma.quiz.findMany({
         where: {
           id: {
@@ -32,26 +34,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ message: 'No more quizzes available' });
       }
 
-      const questions = quizzes.flatMap((quiz) => {
-        return quiz.questions.map((question) => {
-          return {
-            id: question.id,
-            quizTitle: quiz.title,
-            exerciseId: quiz.id,
-            question: question.question,
-            answers: JSON.parse(question.answers),
-            correctAnswer: question.correctAnswer,
-            company: quiz.company,
-            type: quiz.type,
-            timeInMins: quiz.timeInMins,
-            level: quiz.level,
-            questionNum: quiz.questionNum,
-            jobQuizzes: quiz.jobQuizzes,
-          };
-        });
+      // Structuring each quiz with its questions
+      const structuredQuizzes = quizzes.map(quiz => {
+        return {
+          quizId: quiz.id,
+          quizTitle: quiz.title,
+          type: quiz.type,
+          timeInMins: quiz.timeInMins,
+          level: quiz.level,
+          questionNum: quiz.questionNum,
+          company: quiz.company,
+          jobQuizzes: quiz.jobQuizzes,
+          questions: quiz.questions.map(question => {
+            return {
+              questionId: question.id,
+              questionText: question.question,
+              answers: JSON.parse(question.answers),
+              correctAnswer: question.correctAnswer,
+              // Include other question properties if needed
+            };
+          })
+        };
       });
 
-      res.status(200).json(questions);
+      res.status(200).json(structuredQuizzes);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Unable to fetch quizzes', details: error.message });

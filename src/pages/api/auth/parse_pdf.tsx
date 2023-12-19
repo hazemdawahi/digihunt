@@ -6,7 +6,7 @@ import pdf from 'pdf-parse';
 const DEFAULT_MODEL = 'gpt-3.5-turbo-16k';
 
 const openai = new OpenAI({
-    apiKey: ""
+    apiKey: "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"
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

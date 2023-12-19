@@ -17,8 +17,10 @@ import Jimp from "jimp";
 import fs from 'fs';
 const prisma = new PrismaClient();
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { Chart, ChartItem, LinearScale, CategoryScale,BarElement } from 'chart.js';
+import { ChartItem, LinearScale, CategoryScale,BarElement } from 'chart.js';
 import { createCanvas } from 'canvas';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 Chart.register(LinearScale, CategoryScale, BarElement);
 
 const handler = nc<NextApiRequest, NextApiResponse>();

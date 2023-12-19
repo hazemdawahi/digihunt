@@ -102,7 +102,7 @@ export default async function handler(
         skill_4,
         slider_4,
       }: ResumeData = req.body;
-console.log(req.body)
+console.log("body",req.body)
       const existingUser = await prisma.users.findUnique({
         where: { id: user },
         include: { resume: true }, // Include 'resume' relation
@@ -217,7 +217,8 @@ console.log(req.body)
         res.status(404).json({ message: "User not found" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Something went wrong", error: error });
+      console.error('Error:', error);
+      res.status(500).json({ message: "Something went bad", error: error });
     }
   } else if (req.method === "GET") {
     try {

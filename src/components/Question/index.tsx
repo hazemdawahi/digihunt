@@ -5,7 +5,7 @@ import NavigationButton from "./NavigationButton";
 import Webcam from "react-webcam";
 import Swal from 'sweetalert2';
 
-export default function Question({ questions, hideExercise, finishTest,userId }) {
+export default function Question({ questions, hideExercise, finishTest,userId,time }) {
     console.log("userid",userId)
     const initialState = {
         currentQuestion: 0,
@@ -19,7 +19,7 @@ export default function Question({ questions, hideExercise, finishTest,userId })
     const { currentQuestion, answers, numberOfQuestions, timeSpent, tabSwitchCount } = state;
     const question = questions[currentQuestion];
     
-    const [remainingTime, setRemainingTime] = useState(questions[0].timeInMins * 60);
+    const [remainingTime, setRemainingTime] = useState(time * 60);
     const startTime = useRef(Date.now());
     const isHiddenRef = useRef(false);
 
@@ -150,6 +150,7 @@ export default function Question({ questions, hideExercise, finishTest,userId })
         const imageUrls = await Promise.all(capturedImages.current.map(uploadToCloudinary));
     
         console.log('Cloudinary Image URLs:', imageUrls);
+        
         finishTest(totalScore, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, formattedTimeItTook, imageUrls);
     };
     

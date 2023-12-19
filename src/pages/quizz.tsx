@@ -26,50 +26,45 @@ export async function getServerSideProps(context) {
         destination: '/login',
         permanent: false,
       }
+    };
+  }
+
+  const res = await fetch('http://localhost:3000/api/auth/fetchquizz');
+  const data = await res.json();
+
+  let transformedQuizzes = [];
+
+  if (data.message) {
+    console.log(data.message);
+  } else if (Array.isArray(data)) {
+    // Transform quizzes to match the structure expected by your components
+    transformedQuizzes = data.map(quiz => ({
+      quizId: quiz.quizId,
+      title: quiz.quizTitle,
+      type: quiz.type,
+      timeInMins: quiz.timeInMins,
+      level: quiz.level,
+      questionNum: quiz.questionNum,
+      company: quiz.company,
+      jobQuizzes: quiz.jobQuizzes,
+      questions: quiz.questions.map(question => ({
+        questionId: question.questionId,
+        questionText: question.questionText,
+        answers: question.answers,
+        correctAnswer: question.correctAnswer
+      }))
+    }));
+  }
+  console.log("transformedQuizzes in getServerSideProps", transformedQuizzes);
+
+  return {
+    props: {
+      quizzes: transformedQuizzes,
+      session,
     }
-  }
-
- // Fetch your API
-// Fetch your API
-const res = await fetch('http://localhost:3000/api/auth/fetchquizz');
-const data = await res.json();
-
-let transformedExercises = [];
-
-// If there's a message in the response, it means there's no more quizzes available
-if (data.message) {
-  console.log(data.message);
-} else if (Array.isArray(data)) {
-  // If data is an array, it means the quizzes are returned as expected
-  let exercises = data;
-  
-  // Transform your exercises data to match your app structure
-  transformedExercises = exercises.map(exercise => ({
-    id: exercise.id,
-    title: exercise.quizTitle,
-    exerciseId: exercise.exerciseId,
-    question: exercise.question,
-    answers: exercise.answers,
-    correctAnswer: exercise.correctAnswer,  // assuming 'a' maps to 0 and 'b' maps to 1
-    company: exercise.company,
-    type: exercise.type,
-    timeInMins: exercise.timeInMins,
-    level: exercise.level,
-    questionNum: exercise.questionNum,
-    jobQuizzes: exercise.jobQuizzes
-  }));
-  
-  
-  console.log("transformedExercises",transformedExercises)
+  };
 }
 
-return {
-  props: {
-    exercises: transformedExercises,
-    session,
-  }
-};
-}
 
 function letterToIndex(letter, returnLetter = false) {
   if (!letter) return -1;
@@ -219,36 +214,35 @@ function QuizResultsPDF_user({ questions, score,answers, formattedTimeSpent, tab
 }
 
 
-  export default function Home ({ exercises }) {
-    console.log("exercises",exercises)
-     const { data: session } = useSession();
-const userId = session?.user?.id || null;
-    const initialState = {
-      isExerciseShown: false,
-      exerciseId: null,
-      questions: exercises, // use exercises data from props
-      isExerciseDone: false,
-      score: 0,
-      answers:[],
-      formattedTimeSpent: [], 
-      tabSwitchCount:[],
-      formattedTotalDuration:null,
-      remainingTime:null,
-      images:[]
-    
-    };
-    
-    const [state, setState] = useState(initialState);
-    const { isExerciseShown, questions, isExerciseDone, score,answers,formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime,images} = state;
 
-    const callApi = async (questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, remainingTime, user, images) => {
+export default function Home({ quizzes }) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id || null;
+  const initialState = {
+    isExerciseShown: false,
+    currentQuiz: null, // Store the current quiz
+    isExerciseDone: false,
+    score: 0,
+    answers: [],
+    formattedTimeSpent: [],
+    tabSwitchCount: [],
+    formattedTotalDuration: null,
+    remainingTime: null,
+    images: []
+  };
+
+  const [state, setState] = useState(initialState);
+  const { isExerciseShown, currentQuiz, isExerciseDone, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, remainingTime, images } = state;
+
+
+    const callApi = async (quizId,questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, remainingTime, user, images) => {
       const apiUrl = "http://localhost:3000/api/auth/quiz-history";
       const totalTabSwitchCount = tabSwitchCount.reduce((acc, curr) => acc + curr, 0);
 
       const data = {
-        quizId: exercises[0].id, // Send the quiz ID
+        quizId: quizId, // Send the quiz ID
         userId: user.id,
-        exerciseTitle: exercises[0].title,
+        exerciseTitle: quizzes [0].title,
         score: score,
         questions: questions.map((question, index) => {
           const userAnswerLetter = answers[index];
@@ -258,6 +252,7 @@ const userId = session?.user?.id || null;
           
           return {
             question: question.question,
+            id: question.questionId,
             userAnswer: question.answers[letterToIndex(userAnswerLetter)],
             correctAnswer: question.answers[letterToIndex(correctAnswerLetter)],
             tabChanges: tabchanges,
@@ -272,7 +267,7 @@ const userId = session?.user?.id || null;
         images: images
       };
     
-      console.log(data);
+      console.log("data",data);
     
       try {
         const response = await fetch(apiUrl, {
@@ -295,7 +290,7 @@ const userId = session?.user?.id || null;
         return null;
       }
     };
-    const showExercise = async (id) => {
+    const showExercise = async (quizId) => {
       // Check if the user has given permissions to access the webcam
       const hasWebcamPermission = await checkWebcamPermission();
       if (!hasWebcamPermission) {
@@ -307,14 +302,19 @@ const userId = session?.user?.id || null;
         });
         return;
       }
-    
-      // Start the exercise
+  
+      const selectedQuiz = quizzes.find(quiz => quiz.quizId === quizId);
+      if (!selectedQuiz) {
+        console.error("Quiz not found");
+        return;
+      }
+  
       setState({
         ...state,
         isExerciseShown: true,
+        currentQuiz: selectedQuiz,
       });
     };
-    
     
     const hideExercise = () => {
       window.location.reload();
@@ -336,8 +336,8 @@ const userId = session?.user?.id || null;
             score,
             answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime,images
         });
-        callApi(questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration,remainingTime, session.user,images)
-    };
+        callApi(state.currentQuiz.quizId,state.currentQuiz.questions, score, answers, formattedTimeSpent, tabSwitchCount, formattedTotalDuration, remainingTime, session.user, images)
+      };
     return (
       <>
         <Head>
@@ -350,13 +350,13 @@ const userId = session?.user?.id || null;
           <main className="flex-1 flex flex-col justify-center items-center ml-64 p-8"> {/* Keep ml-64 or adjust as needed */}
             <div className="w-full max-w-4xl"> {/* Restrict width */}
               {!isExerciseShown ? (
-                <ExerciseList exercises={exercises} func={showExercise} />
+                <ExerciseList exercises={quizzes} func={showExercise} />
               ) : isExerciseDone ? (
                 <div className="flex flex-col items-center">
-                  <p className="my-4 text-lg font-bold text-gray-700">
-                    You answered {score}/{questions.length} correctly!
-                  </p>
-                  <QuizResults score={score} totalQuestions={questions.length} />
+                <p className="my-4 text-lg font-bold text-gray-700">
+                  You answered {score}/{state.currentQuiz?.questions.length} correctly!
+                </p>
+                <QuizResults score={score} totalQuestions={state.currentQuiz?.questions.length} />
                   <div className={styles.quiz_results_container}>
                     <div className={styles.sized_box}></div>
                     
@@ -374,12 +374,11 @@ const userId = session?.user?.id || null;
               ) : (
                 <Question
                 userId={userId}
-                  questions={questions}
-                  hideExercise={hideExercise}
-                  finishTest={finishTest}
-
-                  
-                />
+                questions={currentQuiz?.questions} // Pass questions from the current quiz
+                hideExercise={hideExercise}
+                finishTest={finishTest}
+                time={currentQuiz?.timeInMins}
+              />
               )}
             </div>
           </main>

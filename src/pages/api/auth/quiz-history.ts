@@ -1,25 +1,23 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { userId, quizId, exerciseTitle, score, questions, answers, timeSpent, tabSwitchCount, totalDuration, remainingTime, images } = req.body;
-
-    if (!(userId && quizId && exerciseTitle && score !== undefined)) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
     try {
-      let totalTabSwitches = 0;
-
-      // If "tabSwitchCount" is an array, sum up its values.
-      if (Array.isArray(tabSwitchCount)) {
-        totalTabSwitches = tabSwitchCount.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+      const { userId, quizId, exerciseTitle, score, questions, answers, timeSpent, tabSwitchCount, totalDuration, remainingTime, images } = req.body;
+console.log("req.body", req.body)
+      if (!(userId && quizId && exerciseTitle && score !== undefined)) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Save the quiz history
+      let totalTabSwitches = 0;
+      if (Array.isArray(tabSwitchCount)) {
+        totalTabSwitches = tabSwitchCount.reduce((acc, curr) => acc + curr, 0);
+      }
+
       const quizHistory = await prisma.quizHistory.create({
         data: {
           userId,
@@ -36,7 +34,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         },
       });
 
-      // Update the userAnswer for each question
       for (const question of questions) {
         await prisma.question.update({
           where: { id: question.id },
@@ -46,8 +43,14 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
       return res.status(200).json(quizHistory);
     } catch (error) {
-      console.error(error); // Log the error for more details
-      return res.status(500).json({ error: "An error occurred while saving the quiz history: " + error.message });
+      console.error("Error occurred in /api/submitQuiz:", error);
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Handle specific Prisma errors (if any)
+        return res.status(500).json({ error: "A database error occurred: " + error.message });
+      } else {
+        // Handle general errors
+        return res.status(500).json({ error: "An error occurred while saving the quiz history: " + error.message });
+      }
     } finally {
       await prisma.$disconnect();
     }
