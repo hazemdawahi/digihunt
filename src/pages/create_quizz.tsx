@@ -71,56 +71,54 @@ const CreateQuizz = ({ companyId }) => {
     }
   };
   const handleGenerateQuiz = async () => {
-    console.log("quizTopic,numberOfQuestions,difficulty", quizTopic,numberOfQuestions,difficulty)
+    console.log("quizTopic,numberOfQuestions,difficulty", quizTopic, numberOfQuestions, difficulty);
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/ai_quizz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topic: quizTopic,
-          numberOfQuestions: numberOfQuestions,
-          difficulty: difficulty
-        })
-      });
-      console.log(response);
-      
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      console.log(data);
-      setIsLoading(false);
+        const response = await fetch('http://localhost:3000/api/auth/ai_quizz', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                topic: quizTopic,
+                numberOfQuestions: numberOfQuestions,
+                difficulty: difficulty
+            })
+        });
 
-  
-      // Update state based on received data
-      setQuizTitle(data.quizName);
-      setQuizType(data.type);
-      setTimeInMins(data.estimatedTime.split(' ')[0]); // assuming format "xx minutes"
-      setDifficulty(data.difficulty);
-  
-      // Map the received questions to match the format of the state
-      const formattedQuestions = data.questions.map((q, index) => ({
-        id: index + 1,
-        question: q.question,
-        answers: q.options,
-        correctAnswer: q.correctAnswer
-      }));
-      setQuestions(formattedQuestions);
-      
-      setIsModalOpen(false);
-  
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setIsLoading(false);
+
+        // Update state based on received data
+        setQuizTitle(data.quizName);
+        setQuizType(data.type);
+        setTimeInMins(data.estimatedTime.split(' ')[0]); // assuming format "xx minutes"
+        setDifficulty(data.difficulty);
+        setLevel(data.difficulty); // Set the quiz level based on the received difficulty
+
+        // Map the received questions to match the format of the state
+        const formattedQuestions = data.questions.map((q, index) => ({
+            id: index + 1,
+            question: q.question,
+            answers: q.options,
+            correctAnswer: q.correctAnswer
+        }));
+        setQuestions(formattedQuestions);
+
+        setIsModalOpen(false);
+
     } catch (error) {
-      console.error(error);
-      // Handle the error or show an error message here
+        console.error(error);
+        setIsLoading(false);
+        Swal.fire('Error!', 'An error occurred while creating your quiz.', 'error');
     }
-  };
-  
+};
+
   const handleQuestionAdd = () => {
     const newQuestion = {
       id: questions.length + 1,
@@ -159,13 +157,13 @@ const CreateQuizz = ({ companyId }) => {
     });
   };
   
-  const handleCorrectAnswerSelect = (questionIndex, value) => {
-    setQuestions((prevQuestions) => {
-      const updatedQuestions = [...prevQuestions];
-      updatedQuestions[questionIndex].correctAnswer = value; // directly assign value to correctAnswer
-      return updatedQuestions;
+  const handleCorrectAnswerSelect = (questionIndex, answerLetter) => {
+    setQuestions(prevQuestions => {
+        const updatedQuestions = [...prevQuestions];
+        updatedQuestions[questionIndex].correctAnswer = `Answer ${answerLetter}`;
+        return updatedQuestions;
     });
-  };
+};
 
   const handleQuestionRemove = (index) => {
     setQuestions((prevQuestions) => {
@@ -257,15 +255,16 @@ const CreateQuizz = ({ companyId }) => {
               Quiz Type
             </label>
             <select
-              id="quizType"
-              value={quizType}
-              onChange={(e) => setQuizType(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
-            >
-              <option value=''>Select Quiz Type</option>
-              <option value='psychometric'>Psychometric Quiz</option>
-              <option value='skillset'>Skill Set Quiz</option>
-            </select>
+  id="quizType"
+  value={quizType}
+  onChange={(e) => setQuizType(e.target.value)}
+  className="border border-gray-300 rounded px-3 py-2 mb-2 h-12 resize-none"
+> 
+ <option value='skill set quiz'>Skill Set Quiz</option>
+
+  <option value='psychometric quiz'>Psychometric Quiz</option>
+</select>
+
           </div>
 
           <div className="mb-4">
@@ -298,54 +297,52 @@ const CreateQuizz = ({ companyId }) => {
               <option value='hard'>Hard</option>
             </select>
           </div>
-
-          {questions.map((question, index) => (
-            <div key={question.id} className="mb-4 p-4 bg-white rounded">
+          {questions.map((question, questionIndex) => (
+  <div key={question.id} className="mb-4 p-4 bg-white rounded">
               <label htmlFor={`question${question.id}`} className="block mb-2 font-medium">
                 Question {question.id}
               </label>
               <textarea
-                id={`question${question.id}`}
-                placeholder="Enter a question"
-                value={question.question}
-                onChange={(e) => handleQuestionChange(index, e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
-              />
+      id={`question${question.id}`}
+      placeholder="Enter a question"
+      value={question.question}
+      onChange={(e) => handleQuestionChange(questionIndex, e.target.value)}
+      className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
+    />
 
-              {question.answers.map((answer, answerIndex) => (
-                <div key={answerIndex} className="mb-2">
+{question.answers.map((answer, answerIndex) => (
+      <div key={answerIndex} className="mb-2">
                   <label htmlFor={`answer${question.id}-${answerIndex}`} className="block mb-2 font-medium">
                     Answer {answerIndex + 1}
                   </label>
                   <textarea
-                    id={`answer${question.id}-${answerIndex}`}
-                    placeholder="Enter an answer"
-                    value={answer || ''}
-                    onChange={(e) => handleAnswerChange(index, answerIndex, e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
-                  />
+          id={`answer${question.id}-${answerIndex}`}
+          placeholder="Enter an answer"
+          value={answer || ''}
+          onChange={(e) => handleAnswerChange(questionIndex, answerIndex, e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
+        />
                 </div>
               ))}
 
-              <div>
-                <label htmlFor={`correctAnswer${question.id}`} className="block mb-2 font-medium">
-                  Correct Answer
-                </label>
-                <select
-                  id={`correctAnswer${question.id}`}
-                  value={question.correctAnswer}
-                  onChange={(e) => handleCorrectAnswerSelect(index, e.target.value)} // directly pass e.target.value
-                  className="border border-gray-300 rounded px-3 py-2 mb-2  h-12 resize-none"
-                >
-                  <option value=''>Select Correct Answer</option>
-                  {question.answers.map((_, answerIndex) => (
-                    <option key={answerIndex} value={String.fromCharCode(97 + answerIndex)}>
-                      Answer {String.fromCharCode(97 + answerIndex).toUpperCase()} {/* map index to letter starting from 'A' */}
+<div>
+            <label htmlFor={`correctAnswer${question.id}`} className="block mb-2 font-medium">
+                Correct Answer
+            </label>
+            <select
+                id={`correctAnswer${question.id}`}
+                value={question.correctAnswer.split(' ')[1]}
+                onChange={(e) => handleCorrectAnswerSelect(questionIndex, e.target.value)}
+                className="border border-gray-300 rounded px-3 py-2 mb-2 h-12 resize-none"
+            >
+                <option value=''>Select Correct Answer</option>
+                {question.answers.map((_, answerIndex) => (
+                    <option key={answerIndex} value={String.fromCharCode(65 + answerIndex)}>
+                        Answer {String.fromCharCode(65 + answerIndex)}
                     </option>
-                  ))}
-                </select>
-              </div>
-
+                ))}
+            </select>
+        </div>
               <div className="flex justify-center">
                 <button onClick={() => handleAnswerAdd(index)} className="bg-green-500 text-white px-4 py-2 rounded">
                   Add Answer

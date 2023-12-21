@@ -29,7 +29,6 @@ async function sendEmail(to: string, subject: string, body: string) {
 }
 
 
-// This function should be implemented to check if a user matches a job
 async function userMatchesJob(user: any, job: any) {
   // Fetch user's resume
   const resume = await prisma.resume.findUnique({ where: { userId: user.id } });
@@ -39,18 +38,25 @@ async function userMatchesJob(user: any, job: any) {
     return false;
   }
 
-  // Here, I'm assuming 'skill_1', 'skill_2', etc. in your resume model represent the skills of the user
-  // Also, I'm assuming 'jobSkills' in your job model is an array of skill names
-  const userSkills = [resume.skill_1, resume.skill_2, resume.skill_3, resume.skill_4].filter(Boolean); // This will ignore null or undefined skills
-  const jobSkills = job.jobSkills.map(js => js.skill.name); // Assuming jobSkills is an array of objects with a 'skill' property that has a 'name'
+  // Splitting user skills into an array of individual skills
+  const userSkills = [resume.skill_1, resume.skill_2, resume.skill_3, resume.skill_4]
+    .filter(Boolean) // Ignore null or undefined
+    .flatMap(s => s.split(/[\s,]+/)) // Split skills by spaces or commas
+    .map(skill => skill.trim().toLowerCase()); // Trim and convert to lower case for case-insensitive comparison
+  console.log("userSkills", userSkills);
+
+  const jobSkills = job.jobSkills.map(js => js.skill.name.toLowerCase()); // Assuming jobSkills is an array of objects with a 'skill' property that has a 'name', converted to lower case
+  console.log("jobSkills", jobSkills);
 
   // Check if any job skills are present in user skills
-  const match = jobSkills.some(skill => userSkills.includes(skill)); // Notice the use of 'some' instead of 'every'
+  const match = jobSkills.some(jobSkill => userSkills.includes(jobSkill));
+  console.log("match", match);
 
-  // Here, you can add more comparisons, for example comparing 'experience' or 'education' fields
+  // Additional comparisons can be added here
 
   return match;
 }
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

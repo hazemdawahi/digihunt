@@ -3,7 +3,7 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import Link from 'next/link';
 import { useState } from 'react';
-import { getSession, useSession, signOut } from 'next-auth/react';
+import { getSession, useSession, signIn } from 'next-auth/react';
 import SideNavbar from '../components/SideNavbar';
 import {
   Container,
@@ -30,43 +30,74 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-
-      {User({ session })}
+      <User session={session} />
     </div>
   );
 }
 
 function User({ session }) {
+  const { data: sessionData } = useSession();
+
   const formik = useFormik({
     initialValues: {
-      firstname: session.user.firstname,
-      lastname: session.user.lastname,
-      email: session.user.email,
-      location: session.user.location,
-      password: session.user.password,
-      company: session.user.company_name,
-      industry: session.user.industry,
+      firstname: session?.user?.firstname || '',
+      lastname: session?.user?.lastname || '',
+      email: session?.user?.email || '',
+      location: session?.user?.location || '',
+      password: '',
+      company: session?.user?.company_name || '',
+      industry: session?.user?.industry || '',
+      role: session?.user?.role || '',
     },
-    onSubmit,
-  });
+    onSubmit: async (values) => {
+      const options = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      };
 
-  async function onSubmit(values) {
-    console.log(values);
-    const options = {
-      method: 'put',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...values }),
-    };
-
-    await fetch('http://localhost:3000/api/auth/update', options)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        if (data) {
-          Swal.fire('Good job!', 'You clicked the button!', 'success');
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/update', options);
+        const data = await response.json();
+        if (data && response.ok) {
+          await Swal.fire('Update Successful', 'Your information has been updated.', 'success');
+          
+          // Refresh session data
+          console.log("data",data);
+          
+          let result;
+          if (session?.user.role=== 'company') {
+            result = await signIn('credentials', {
+              email: data.company.email,
+              password: "test123",
+              redirect: false,
+            });
+          } else {
+            result = await signIn('credentials', {
+              email: data.user.email,
+              password: "test123",
+              redirect: false,
+            });
+          }
+          console.log("result", result);
+          
+          // Check if signIn was successful
+          if (result?.error === null) {
+            // Reload the page
+            window.location.reload();
+          } else {
+            console.error("Failed to refresh the session after sign-in.");
+          }
+        } else {
+          throw new Error(data.message || 'An error occurred');
         }
-      });
-  }
+      } catch (error) {
+        Swal.fire('Update Failed', error.message, 'error');
+      }
+      
+      
+    },
+  });
 
   return (
     <div style={{ display: 'flex' }}>
@@ -75,7 +106,7 @@ function User({ session }) {
         <h3 className="text-4xl font-bold">PERSONAL INFORMATION</h3>
         <Spacer y={2} />
         <Container xs>
-          <form className="flex flex-col gap-5" onSubmit={formik.handleSubmit}>
+          <form onSubmit={formik.handleSubmit}>
             <Card css={{ $$cardColor: 'white' }}>
               <Card.Body>
                 <Row justify="center" align="center">
@@ -89,20 +120,19 @@ function User({ session }) {
                       verticalOffset="-10%"
                       size="md"
                     >
-                      <Avatar size="xl" src={session.user.image} />
+                      <Avatar size="xl" src={session?.user?.image} />
                     </Badge>
                   </Grid>
                 </Row>
                 <Row justify="center" align="center">
                   <Grid.Container gap={2} justify="center">
-                    {session.user.role === 'company' ? (
+                    {formik.values.role === 'company' ? (
                       <>
                         <Grid>
                           <Input
                             clearable
                             label="Company Name"
                             placeholder="Enter your company name"
-                            value={session.user.company}
                             name="company"
                             {...formik.getFieldProps('company')}
                           />
@@ -112,7 +142,6 @@ function User({ session }) {
                             clearable
                             label="Industry"
                             placeholder="Enter your industry"
-                            value={session.user.industry}
                             name="industry"
                             {...formik.getFieldProps('industry')}
                           />
@@ -125,7 +154,6 @@ function User({ session }) {
                             clearable
                             label="First Name"
                             placeholder="Enter your first name"
-                            value={session.user.firstname}
                             name="firstname"
                             {...formik.getFieldProps('firstname')}
                           />
@@ -135,7 +163,6 @@ function User({ session }) {
                             clearable
                             label="Last Name"
                             placeholder="Enter your last name"
-                            value={session.user.lastname}
                             name="lastname"
                             {...formik.getFieldProps('lastname')}
                           />
@@ -144,9 +171,9 @@ function User({ session }) {
                     )}
                     <Grid>
                       <Input
-                        type="Email"
+                        type="email"
                         label="Email"
-                        placeholder="With regex validation"
+                        placeholder="Enter your email"
                         name="email"
                         {...formik.getFieldProps('email')}
                       />
@@ -156,7 +183,6 @@ function User({ session }) {
                         clearable
                         label="Location"
                         placeholder="Enter your location"
-                        value={session.user.location}
                         name="location"
                         {...formik.getFieldProps('location')}
                       />
@@ -164,10 +190,8 @@ function User({ session }) {
                     <Grid>
                       <Input.Password
                         clearable
-                        initialValue={session.user.password}
-                        type="password"
                         label="Password"
-                        placeholder="Enter your password"
+                        placeholder="Enter new password (leave blank if unchanged)"
                         name="password"
                         {...formik.getFieldProps('password')}
                       />
@@ -176,7 +200,7 @@ function User({ session }) {
                 </Row>
               </Card.Body>
               <Spacer y={1} />
-              <Button onClick={() => onSubmit(formik.values)} color="primary" auto>
+              <Button type="submit" color="primary" auto>
                 UPDATE
               </Button>
             </Card>

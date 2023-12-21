@@ -154,8 +154,9 @@ offsetY = offsetY + 140;
 let questionNumber = 1;
 console.log("req.body.quiz.questions",req.body.quiz.questions);
 
-for (const [index, question] of req.body.questions.entries()) {
-  const questionText = `Q${index + 1}: ${question.question}`;
+for (const question of req.body.questions) {
+  // Prepare text for the question
+  const questionText = `Q: ${question.question}`;
   page.drawText(questionText, {
     x: 30,
     y: height - offsetY,
@@ -165,15 +166,9 @@ for (const [index, question] of req.body.questions.entries()) {
   });
   offsetY += fontSize + 5;
 
-  const userAnswer = question.userAnswer.toUpperCase();
-  const correctAnswerIndex = req.body.quiz.questions[index].correctAnswer.charCodeAt(0) - "a".charCodeAt(0);
-  const correctAnswer = JSON.parse(req.body.quiz.questions[index].answers)[correctAnswerIndex].toUpperCase();
-
-  const userAnswerText = `Your answer: ${userAnswer}`;
-  const correctAnswerText = `Correct answer: ${correctAnswer}`;
-
-  const userAnswerColor = userAnswer === correctAnswer ? rgb(0, 0.5, 0) : rgb(0.5, 0, 0);
-
+  // Prepare and draw text for the user's answer
+  const userAnswerText = question.userAnswer ? `Your answer: ${question.userAnswer}` : 'Your answer: Not Provided';
+  const userAnswerColor = question.userAnswer === question.correctAnswer ? rgb(0, 0.5, 0) : rgb(0.5, 0, 0);
   page.drawText(userAnswerText, {
     x: 30,
     y: height - offsetY,
@@ -183,6 +178,8 @@ for (const [index, question] of req.body.questions.entries()) {
   });
   offsetY += fontSize + 5;
 
+  // Prepare and draw text for the correct answer
+  const correctAnswerText = `Correct answer: ${question.correctAnswer}`;
   page.drawText(correctAnswerText, {
     x: 30,
     y: height - offsetY,
@@ -190,7 +187,7 @@ for (const [index, question] of req.body.questions.entries()) {
     size: fontSize,
     color: textColor,
   });
-  offsetY += fontSize + 5;
+  offsetY += fontSize + 10;
 
   // Add tab changes and duration per question
   const tabChangesText = `Tab changes: ${question.tabChanges}`;

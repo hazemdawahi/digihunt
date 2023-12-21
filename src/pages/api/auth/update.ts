@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
@@ -15,60 +12,63 @@ export default async function handler(
     res.status(405).json({ message: 'Method not allowed' });
     return;
   }
-  const { firstname, lastname, email, password: plainTextPassword, role, location } = req.body;
 
-  // Check if user exists
-  const existingUser = await prisma.users.findUnique({
-    where: {
-      email: email
-    }
-  })
-  
-  if (!existingUser) {
-    res.status(404).json({ message: 'User not found' });
-    return;
-  }
-  
-  // Update user data
-  let data = {
-    firstname: firstname,
-    lastname: lastname,
-    location: location,
-    role: role,
-    password: '',
-    email:email
-  };
-  
-  if (email && email !== existingUser.email) {
-    const existingEmailUser = await prisma.users.findUnique({
-      where: { email: email },
+  const { email, password: plainTextPassword, role, ...rest } = req.body;
+
+  // Check if it's a company or user update based on role
+  if (role === 'company') {
+    // Handling company updates
+    const existingCompany = await prisma.companies.findUnique({
+      where: { email: email }
     });
-  
-    if (existingEmailUser) {
-      res.status(409).json({ message: 'Email already taken' });
+
+    if (!existingCompany) {
+      res.status(404).json({ message: 'Company not found' });
       return;
     }
-   
 
-    data = {
-      ...data,
-      email: email,
+    let companyData = {
+      company_name: rest.company || existingCompany.company_name,
+      industry: rest.industry || existingCompany.industry,
+      location: rest.location || existingCompany.location,
+      email: rest.email || existingCompany.email,
+      ...(plainTextPassword && { password: await bcrypt.hash(plainTextPassword, 10) }),
     };
-  
-  }
-  
-  if (plainTextPassword) {
-    const password = await bcrypt.hash(plainTextPassword, 10);
-    data = {
-      ...data,
-      password: password,
+
+    const updatedCompany = await prisma.companies.update({
+      where: { email: email },
+      data: companyData,
+    });
+
+    res.status(200).json({ company: updatedCompany });
+
+  } else if (role === 'employee') {
+    // Handling user updates
+    const existingUser = await prisma.users.findUnique({
+      where: { email: email }
+    });
+
+    if (!existingUser) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    let userData = {
+      firstname: rest.firstname || existingUser.firstname,
+      lastname: rest.lastname || existingUser.lastname,
+      location: rest.location || existingUser.location,
+      email: rest.email || existingUser.email,
+      ...(plainTextPassword && { password: await bcrypt.hash(plainTextPassword, 10) }),
     };
+
+    const updatedUser = await prisma.users.update({
+      where: { email: email },
+      data: userData,
+    });
+
+    res.status(200).json({ user: updatedUser });
+
+  } else {
+    res.status(400).json({ message: 'Invalid role' });
   }
-  
-  const updatedUser = await prisma.users.update({
-    where: { email: email },
-    data: data,
-  });
-  
-  res.status(200).json({ user: updatedUser });
 }

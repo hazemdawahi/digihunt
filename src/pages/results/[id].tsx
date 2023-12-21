@@ -14,6 +14,8 @@ export default function Results() {
   const fetchQuizzes = async () => {
     const response = await fetch(`http://localhost:3000/api/auth/quizz_done?userId=${id}`);
     const data = await response.json();
+    console.log("quizzhistory",data);
+
     setQuizzes(data);
   };
 
@@ -55,19 +57,26 @@ export default function Results() {
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(quizzes) && quizzes.map((quizHistory) => (
-              <tr key={quizHistory.id} className="text-center hover:bg-blue-50">
-                <td className="py-2 px-4 border border-blue-300">{quizHistory.quiz.title}</td>
-                <td className="py-2 px-4 border border-blue-300">{quizHistory.quiz.type}</td>
-                <td className="py-2 px-4 border border-blue-300">{quizHistory.quiz.level}</td>
-                <td className="py-2 px-4 border border-blue-300">{quizHistory.quiz.questionNum}</td>
-                <td className="py-2 px-4 border border-blue-300">
-                  <a href={quizHistory.quiz.pdfUrl} target="_blank" rel="noopener noreferrer">
-                    <FontAwesomeIcon icon={faFilePdf} onClick={() => handlePdfClick(quizHistory)} />
-                  </a>
-                </td>
-              </tr>
-            ))}
+          {Array.isArray(quizzes) && quizzes.map((quizHistory) => (
+  <tr key={quizHistory.id} className="text-center hover:bg-blue-50">
+    <td className="py-2 px-4 border border-blue-300">
+      {quizHistory.quiz ? quizHistory.quiz.title : 'N/A'}
+    </td>
+    <td className="py-2 px-4 border border-blue-300">
+      {quizHistory.quiz ? quizHistory.quiz.type : 'N/A'}
+    </td>
+    <td className="py-2 px-4 border border-blue-300">
+      {quizHistory.quiz ? quizHistory.quiz.level : 'N/A'}
+    </td>
+    <td className="py-2 px-4 border border-blue-300">
+      {quizHistory.quiz ? quizHistory.quiz.questionNum : 'N/A'}
+    </td>
+    <td className="py-2 px-4 border border-blue-300">
+      <FontAwesomeIcon icon={faFilePdf} onClick={() => handlePdfClick(quizHistory)} />
+    </td>
+  </tr>
+))}
+
           </tbody>
         </table>
       </main>

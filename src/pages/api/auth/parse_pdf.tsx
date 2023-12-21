@@ -6,7 +6,7 @@ import pdf from 'pdf-parse';
 const DEFAULT_MODEL = 'gpt-3.5-turbo-16k';
 
 const openai = new OpenAI({
-    apiKey: "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"
+  
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,7 +22,7 @@ console.log("PDF URL:", pdfUrl)
             const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
             const data = await pdf(response.data);
 
-            const prompt = `Given the following resume text, please categorize the information into the respective fields: firstname, lastname, job, country, email, phone, website, skype, twitter, linkedin, facebook, profile, first_date_start, first_date_end, first_loc, first_company_work, first_work, second_date_start, second_date_end, second_company_work, second_company_name, second_work, third_date_start, third_date_end, third_company_work, third_company_name, third_work, first_date_start_edu, first_date_end_edu, first_edu, first_education, second_date_start_edu, second_date_end_edu, second_edu, skill_1, slider_1, skill_2, slider_2, skill_3, slider_3, skill_4, slider_4. For the fields 'skill_1', 'skill_2', 'skill_3', and 'skill_4', provide only one distinct skill for each field. Also, for each skill, provide a corresponding 'slider' value between 1 and 10 representing expertise. Extract fields from the Resume Text: "${data.text}"`;
+            const prompt = `Given the following resume text, please categorize the information into the respective fields and if one is empty based on the text fill it : firstname, lastname, job, country, email, phone, website, skype, twitter, linkedin, facebook, profile, first_date_start, first_date_end, first_loc, first_company_work, first_work, second_date_start, second_date_end, second_company_work, second_company_name, second_work, third_date_start, third_date_end, third_company_work, third_company_name, third_work, first_date_start_edu, first_date_end_edu, first_edu, first_education, second_date_start_edu, second_date_end_edu, second_edu, skill_1, slider_1, skill_2, slider_2, skill_3, slider_3, skill_4, slider_4. For the fields 'skill_1', 'skill_2', 'skill_3', and 'skill_4', provide only one distinct skill for each field. Also, for each skill, provide a corresponding 'slider' value between 1 and 10 representing expertise. Extract fields from the Resume Text: "${data.text}"`;
 
             const chatCompletion = await openai.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],

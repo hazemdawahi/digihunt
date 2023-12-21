@@ -42,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...history,
         quiz: quizzes[i],
       }));
+      console.log("result", result)
 
       res.status(200).json(result);
     } catch (error) {
