@@ -1,28 +1,31 @@
-# Create T3 App
+# Digihunt
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Digihunt is a recruitment platform I built as my final engineering project and while working at Digitalize.
 
-## What's next? How do I make an app with this?
+The platform helps companies evaluate candidates with AI-generated skill quizzes and identity verification.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## What it does
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- Candidate and recruiter accounts
+- Job listings and applications
+- AI-generated skill quizzes using GPT models
+- Candidate identity verification using AWS Rekognition
+- Serverless backend
+- Recruitment workflow for reviewing and evaluating applicants
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Tech stack
 
-## Learn More
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Prisma
+- tRPC
+- NextAuth
+- AWS Rekognition
+- OpenAI / GPT models
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Why I built it
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+I built Digihunt to explore how AI and identity verification could improve online recruiting and candidate assessment.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+This repository contains the application I built for the project.
